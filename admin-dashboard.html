@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CASWear Admin Dashboard</title>
+
+    <!-- Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&display=swap"
+        rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+    <!-- Admin CSS -->
+    <link rel="stylesheet" href="style-admin.css">
+
+</head>
+<body>
+
+<div class="admin-container">
+
+
+    <!----Sidebar -->
+
+    <aside class="sidebar">
+
+        <div class="admin-logo">
+            <img
+                src="logo.png"
+                alt="CASWear Logo">
+        </div>
+
+        <nav class="sidebar-menu">
+            <a
+                href="#"
+                class="menu-link active"
+                onclick="showSection('dashboard', this); return false;">
+                <i class="fa-solid fa-chart-line"></i>
+                <span>
+                    Dashboard
+                </span>
+            </a>
+
+
+            <a
+                href="#"
+                class="menu-link"
+                onclick="showSection('orders', this); return false;">
+                <i class="fa-solid fa-cart-shopping"></i>
+                <span>
+                    Orders
+                </span>
+            </a>
+
+            <a
+                href="#"
+                class="menu-link"
+                onclick="showSection('products', this); return false;">
+                <i class="fa-solid fa-shirt"></i>
+                <span>
+                    Products
+                </span>
+            </a>
+
+            <a
+                href="#"
+                class="menu-link"
+                onclick="showSection('users', this); return false;">
+                <i class="fa-solid fa-users"></i>
+                <span>
+                    Users
+                </span>
+            </a>
+
+            <a
+                href="#"
+                class="menu-link"
+                onclick="showSection('reports', this); return false;">
+                <i class="fa-solid fa-file-lines"></i>
+                <span>
+                    Reports
+                </span>
+
+            </a>
+
+            <a
+                href="#"
+                class="menu-link"
+                onclick="showSection('settings', this); return false;">
+                <i class="fa-solid fa-gear"></i>
+                <span>
+                    Settings
+                </span>
+            </a>
+        </nav>
+    </aside>
+
+
+
+    <!-- MAIN CONTENT -->
+
+    <main class="main-content">
+
+
+        <!-- HEADER -->
+
+        <header class="top-header">
+            <div class="header-title">
+
+                <h1 id="pageHeaderTitle">
+                    Dashboard Overview
+                </h1>
+
+            </div>
+
+
+            <div class="header-right">
+                <div class="search-box">
+                    <input
+                        type="text"
+                        id="searchInput"
+                        placeholder="Search anything">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </div>
+
+                <div class="date-box">
+                    <span id="currentDate">
+                        August 20, 2026
+                    </span>
+
+                </div>
+            </div>
+        </header>
+
+
+
+        <!--DASHBOARD--->
+        <section
+            id="dashboard"
+            class="content-section active-section">
+
+
+            <!--STAT CARDS--->
+            <div class="stats-container">
+
+
+                <!-- TOTAL ORDERS -->
+
+                <div class="stat-card">
+                    <div class="stat-icon orders-icon">
+                        <i class="fa-solid fa-cart-shopping"></i>
+                    </div>
+
+                    <div>
+                        <h3>
+                            Total Orders
+                        </h3>
+                        <strong id="totalOrders">
+                            00
+                        </strong>
+                    </div>
+
+                </div>
+
+                <!-- CONFIRMED ORDERS -->
+                <div class="stat-card">
+                    <div class="stat-icon confirmed-icon">
+
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+
+                    <div>
+                        <h3>
+                            Confirmed Orders
+                        </h3>
+                        <strong id="confirmedOrders">
+                            00
+                        </strong>
+                    </div>
+                </div>
+
+                <!-- CANCELLED ORDERS -->
+                <div class="stat-card">
+                    <div class="stat-icon cancelled-icon">
+                        <i class="fa-solid fa-circle-xmark"></i>
+                    </div>
+
+                    <div>
+                        <h3>
+                            Cancelled Orders
+                        </h3>
+                        <strong id="cancelledOrders">
+                            00
+                        </strong>
+                    </div>
+                </div>
+
+                <!-- TOTAL USERS -->
+                <div class="stat-card">
+                    <div class="stat-icon users-icon">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+
+                    <div>
+                        <h3>
+                            Total Users
+                        </h3>
+                        <strong id="totalUsers">
+                            00
+                        </strong>
+                    </div>
+                </div>
+
+                <!-- TOTAL PROFIT -->
+                <div class="stat-card">
+                    <div class="stat-icon profit-icon">
+                        <i class="fa-solid fa-peso-sign"></i>
+                    </div>
+
+                    <div>
+                        <h3>
+                            Total Profit
+                        </h3>
+                        <strong id="totalProfit">
+                            ₱0.00
+                        </strong>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!-- CHARTS-->
+
+            <div class="charts-container">
+
+
+                <!--MONTHLY ORDER CHART--->
+                <div class="chart-card">
+
+                    <div class="card-title">
+                        Orders Overview
+                    </div>
+
+                    <div class="bar-chart">
+                        <div class="bar-group">
+                            <span class="bar order-bar"></span>
+                            <small>Jan</small>
+                        </div>
+
+                        <div class="bar-group">
+                            <span class="bar order-bar"></span>
+                            <small>Feb</small>
+                        </div>
+
+                        <div class="bar-group">
+                            <span class="bar order-bar"></span>
+                            <small>Mar</small>
+                        </div>
+
+                        <div class="bar-group">
+                            <span class="bar order-bar"></span>
+                            <small>Apr</small>
+                        </div>
+
+                        <div class="bar-group">
+                            <span class="bar order-bar"></span>
+                            <small>May</small>
+                        </div>
+
+                        <div class="bar-group">
+                            <span class="bar order-bar"></span>
+                            <small>Jun</small>
+                        </div>
+
+                        <div class="bar-group">
+                            <span class="bar order-bar"></span>
+                            <small>Jul</small>
+                        </div>
+
+                        <div class="bar-group">
+                            <span class="bar order-bar"></span>
+                            <small>Aug</small>
+                        </div>
+
+                        <div class="bar-group">
+                            <span class="bar order-bar"></span>
+                            <small>Sep</small>
+                        </div>
+
+                        <div class="bar-group">
+                            <span class="bar order-bar"></span>
+                            <small>Oct</small>
+                        </div>
+
+                        <div class="bar-group">
+                            <span class="bar order-bar"></span>
+                            <small>Nov</small>
+                        </div>
+
+                        <div class="bar-group">
+                            <span class="bar order-bar"></span>
+                            <small>Dec</small>
+                        </div>
+
+                    </div>
+
+                    <div class="chart-legend">
+                        <span>
+                            <i class="legend orders"></i>
+                            Orders
+                        </span>
+                    </div>
+                </div>
+
+
+
+                <!--ORDER STATUS-->
+                <div class="chart-card">
+
+                    <div class="card-title">
+                        Order Status
+                    </div>
+
+                    <div class="status-chart">
+                        <div class="status-summary">
+                            <div class="status-summary-item">
+                                <span class="status-dot total-dot"></span>
+                                <span>
+                                    Total Orders
+                                </span>
+                                <strong id="chartTotalOrders">
+                                    0
+                                </strong>
+                            </div>
+
+                            <div class="status-summary-item">
+                                <span class="status-dot confirmed-dot"></span>
+                                <span>
+                                    Confirmed
+                                </span>
+                                <strong id="chartConfirmedOrders">
+                                    0
+                                </strong>
+                            </div>
+
+                            <div class="status-summary-item">
+                                <span class="status-dot cancelled-dot"></span>
+                                <span>
+                                    Cancelled
+                                </span>
+                                <strong id="chartCancelledOrders">
+                                    0
+                                </strong>
+                            </div>
+
+                            <div class="status-summary-item">
+                                <span class="status-dot completed-dot"></span>
+                                <span>
+                                    Completed
+                                </span>
+                                <strong id="chartCompletedOrders">
+                                    0
+                                </strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+
+                <!-- ORDER BY PROGRAM CHART-->
+                <div class="chart-card program-chart-card">
+
+                    <div class="card-title">
+                        Orders by Program
+                    </div>
+
+                    <!-- ADDED: canvas graph for Orders by Program -->
+                    <div class="program-chart-graph-container">
+
+                        <canvas id="programChartGraph"></canvas>
+
+                    </div>
+                    <!-- END ADDED -->
+
+
+                    <div class="program-chart-container">
+                        <canvas id="programChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!--BOTTOM-->
+            <div class="bottom-container">
+
+
+                <!-- RECENT ORDERS -->
+                <div class="recent-orders">
+                    <div class="section-header">
+                        <h2>
+                            Recent Orders
+                        </h2>
+
+                        <button
+                            class="small-button"
+                            onclick="showSectionByName('orders')">
+
+                            View All
+
+                        </button>
+                    </div>
+
+                    <div class="table-container">
+
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Customer</th>
+                                    <th>Program</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="recentOrdersTable">
+                                <tr>
+                                    <td
+                                        colspan="6"
+                                        class="empty">
+                                        No orders yet.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- QUICK ACTIONS -->
+                <div class="quick-actions">
+                    <h2>
+                        Quick Actions
+                    </h2>
+
+
+                    <div class="quick-grid">
+                        <button
+                            onclick="openProductModal()">
+                            <i class="fa-solid fa-shirt"></i>
+                            <span>
+                                Add Product
+                            </span>
+                        </button>
+
+                        <button
+                            onclick="showSectionByName('orders')">
+                            <i class="fa-solid fa-cart-shopping"></i>
+                            <span>
+                                Manage Orders
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!--ORDERS-->
+        <section
+            id="orders"
+            class="content-section">
+
+            <div class="page-title">
+                <div>
+                    <h2>
+                        Orders
+                    </h2>
+                    <p>
+                        Manage and update every customer order.
+                    </p>
+                </div>
+            </div>
+
+            <!-- ORDER TABS -->
+            <div class="order-tabs">
+                <button
+                    class="order-tab active"
+                    onclick="filterOrders('all', this)">
+                    All Orders
+                </button>
+
+                <button
+                    class="order-tab"
+                    onclick="filterOrders('pending', this)">
+                    Pending
+                </button>
+
+                <button
+                    class="order-tab"
+                    onclick="filterOrders('confirmed', this)">
+                    Confirmed
+                </button>
+
+                <button
+                    class="order-tab"
+                    onclick="filterOrders('cancelled', this)">
+                    Cancelled
+                </button>
+
+                <button
+                    class="order-tab"
+                    onclick="filterOrders('completed', this)">
+                    Completed
+                </button>
+            </div>
+
+            <!-- ORDER TABLE -->
+            <div class="full-card order-table-card">
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Reference No.</th>
+                                <th>Customer</th>
+                                <th>Program</th>
+                                <th>Quantity</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="ordersTable">
+                            <tr>
+                                <td
+                                    colspan="8"
+                                    class="empty">
+                                    No orders yet.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!--PRODUCTS-->
+        <section
+            id="products"
+            class="content-section">
+
+            <div class="page-title">
+                <div>
+                    <h2>
+                        Products
+                    </h2>
+                    <p>
+                        Manage CASWear products and inventory.
+                    </p>
+                </div>
+
+                <button
+                    class="add-button"
+                    onclick="openProductModal()">
+                    <i class="fa-solid fa-plus"></i>
+                    Add Product
+                </button>
+            </div>
+
+            <div
+                id="productsContainer"
+                class="products-container">
+            </div>
+        </section>
+
+
+
+        <!--UDERS-->
+        <section
+            id="users"
+            class="content-section">
+            <div class="page-title">
+                <div>
+                    <h2>
+                        Users
+                    </h2>
+                    <p>
+                        Registered CASWear users.
+                    </p>
+                </div>
+            </div>
+            <div class="full-card">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Contact</th>
+                                <th>Address</th>
+                                <th>Role</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTable">
+                            <tr>
+                                <td
+                                    colspan="5"
+                                    class="empty">
+                                    No users yet.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+
+
+        <!--REPORTS-->
+        <section
+            id="reports"
+            class="content-section">
+
+            <div class="page-title">
+                <div>
+                    <h2>
+                        Reports
+                    </h2>
+                    <p>
+                        Summary of CASWear sales and orders.
+                    </p>
+                </div>
+            </div>
+
+            <div class="report-card">
+                <h3>
+                    Sales Summary
+                </h3>
+
+                <div class="report-stat">
+                    <span>Total Orders</span>
+                    <strong id="reportOrders">
+                        0
+                    </strong>
+                </div>
+
+                <div class="report-stat">
+                    <span>Pending Orders</span>
+                    <strong id="reportPendingOrders">
+                        0
+                    </strong>
+                </div>
+
+                <div class="report-stat">
+                    <span>Confirmed Orders</span>
+                    <strong id="reportConfirmedOrders">
+                        0
+                    </strong>
+                </div>
+
+                <div class="report-stat">
+                    <span>Cancelled Orders</span>
+                    <strong id="reportCancelledOrders">
+                        0
+                    </strong>
+                </div>
+
+                <div class="report-stat">
+                    <span>Completed Orders</span>
+                    <strong id="reportCompletedOrders">
+                        0
+                    </strong>
+                </div>
+
+                <div class="report-stat">
+                    <span>Total Profit</span>
+                    <strong id="reportProfit">
+                        ₱0.00
+                    </strong>
+                </div>
+
+                <button
+                    onclick="window.print()"
+                    class="print-button">
+                    <i class="fa-solid fa-print"></i>
+                    Print Report
+                </button>
+            </div>
+        </section>
+
+
+
+        <!--SETTINGS-->
+        <section
+            id="settings"
+            class="content-section">
+
+            <div class="page-title">
+                <div>
+                    <h2>
+                        Settings
+                    </h2>
+                    <p>
+                        Manage your administrator account.
+                    </p>
+                </div>
+            </div>
+
+            <div class="settings-card">
+                <h3>
+                    Admin Account
+                </h3>
+
+                <p id="adminEmail">
+                    Loading...
+                </p>
+
+                <button
+                    type="button"
+                    id="logoutButton"
+                    class="logout-button">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    Logout
+                </button>
+            </div>
+        </section>
+    </main>
+</div>
+
+
+
+<!--PRODUCT MODAL-->
+<div
+    id="productModal"
+    class="modal">
+
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>
+                Add Product
+            </h2>
+
+            <button
+                type="button"
+                onclick="closeProductModal()">
+                &times;
+            </button>
+        </div>
+
+        <form id="productForm">
+            <label for="productName">
+                Product Name
+            </label>
+
+            <input
+                type="text"
+                id="productName"
+                placeholder="Enter product name"
+                required>
+
+            <label for="productCategory">
+                Category
+            </label>
+
+            <select
+                id="productCategory"
+                required>
+
+                <option value="">
+                    Select category
+                </option>
+
+                <option value="T-Shirts">
+                    T-Shirts
+                </option>
+
+                <option value="Lanyard">
+                    Lanyard
+                </option>
+
+                <option value="Uniform">
+                    Uniform
+                </option>
+
+                <option value="Others">
+                    Others
+                </option>
+
+            </select>
+
+
+            <!--PROGRAM-->
+            <label for="productProgram">
+                Program
+            </label>
+
+            <select
+                id="productProgram"
+                required>
+
+                <option value="">
+                    Select program
+                </option>
+
+                <option value="IT">
+                    IT
+                </option>
+
+                <option value="IS">
+                    IS
+                </option>
+
+                <option value="STAT">
+                    STAT
+                </option>
+
+                <option value="PSYCH">
+                    PSYCH
+                </option>
+
+                <option value="PROVINCIAL">
+                    PROVINCIAL
+                </option>
+
+            </select>
+
+            <label for="productPrice">
+                Price
+            </label>
+
+            <input
+                type="number"
+                id="productPrice"
+                placeholder="450"
+                min="0"
+                required>
+
+            <label for="productImage">
+                Image URL
+            </label>
+
+            <input
+                type="text"
+                id="productImage"
+                placeholder="images/product.jpg" required>
+
+            <button
+                type="submit"
+                class="save-button">
+                Save Product
+            </button>
+        </form>
+    </div>
+</div>
+
+
+
+<!--CHART-->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+<script
+    type="module"
+    src="admin-dashboard.js">
+</script>
+
+</body>
+</html>

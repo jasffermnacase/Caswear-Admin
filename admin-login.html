@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>CASWear Admin Login</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&display=swap"
+        rel="stylesheet">
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+    <link rel="stylesheet" href="style-admin.css">
+
+</head>
+
+<body>
+
+<div class="admin-login-container">
+
+    <div class="admin-login-card">
+
+      
+
+
+        <h1>Admin Login</h1>
+
+        <p class="login-subtitle">
+            Sign in to access the CASWear Admin Dashboard
+        </p>
+
+
+        <!-- LOGIN FORM -->
+        <form id="adminLoginForm">
+
+            <!-- EMAIL -->
+            <div class="input-group">
+
+                <i class="fa-solid fa-envelope"></i>
+
+                <input
+                    type="email"
+                    id="adminEmail"
+                    placeholder="Admin Email"
+                    required>
+
+            </div>
+
+
+            <!-- PASSWORD -->
+            <div class="input-group">
+
+                <i class="fa-solid fa-lock"></i>
+
+                <input
+                    type="password"
+                    id="adminPassword"
+                    placeholder="Password"
+                    required>
+
+                <i
+                    class="fa-solid fa-eye password-eye"
+                    id="togglePassword">
+                </i>
+
+            </div>
+
+
+            <!-- LOGIN BUTTON -->
+            <button
+                type="submit"
+                class="admin-login-btn">
+
+                <i class="fa-solid fa-right-to-bracket"></i>
+
+                Login
+
+            </button>
+
+        </form>
+
+
+        <!-- MESSAGE -->
+        <p
+            id="loginMessage"
+            class="login-message">
+        </p>
+
+
+
+        <!-- BACK TO USER LOGIN -->
+        <a
+            href="login.html"
+            class="back-user-login">
+
+            <i class="fa-solid fa-arrow-left"></i>
+
+            Back to User Login
+
+        </a>
+
+    </div>
+
+</div>
+
+
+<script
+    type="module"
+    src="admin-login.js">
+</script>
+
+</body>
+</html>
