@@ -22,36 +22,25 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 
-//FIREBASE
+// FIREBASE
 const firebaseConfig = {
-
-    apiKey:
-        "AIzaSyAqlEDKaGECuc8ycmzZVHD7gQeZcqnm7ek",
-    authDomain:
-        "caswear-c21e2.firebaseapp.com",
-    projectId:
-        "caswear-c21e2",
-    storageBucket:
-        "caswear-c21e2.firebasestorage.app",
-    messagingSenderId:
-        "842998215942",
-    appId:
-        "1:842998215942:web:fcd283e0cd118451951a87",
-    measurementId:
-        "G-317N3TECX6"
+    apiKey: "AIzaSyAqlEDKaGECuc8ycmzZVHD7gQeZcqnm7ek",
+    authDomain: "caswear-c21e2.firebaseapp.com",
+    projectId: "caswear-c21e2",
+    storageBucket: "caswear-c21e2.firebasestorage.app",
+    messagingSenderId: "842998215942",
+    appId: "1:842998215942:web:fcd283e0cd118451951a87",
+    measurementId: "G-317N3TECX6"
 };
 
 
-//INITIALIZE FIREBASE
-const app =
-    initializeApp(firebaseConfig);
-const db =
-    getFirestore(app);
-const auth =
-    getAuth(app);
+// INITIALIZE FIREBASE
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
 
 
-//GLOBAL DATA
+// GLOBAL DATA
 let orders = [];
 let users = [];
 let payments = [];
@@ -61,59 +50,47 @@ let currentSearch = "";
 let programChartInstance = null;
 
 
-//ADMIN AUTHENTICATION
+// ADMIN AUTHENTICATION
 onAuthStateChanged(auth, (user) => {
-    const adminEmail =
-        document.getElementById("adminEmail");
+    const adminEmail = document.getElementById("adminEmail");
+
     if (!user) {
         console.log("No admin logged in.");
+
         if (adminEmail) {
-            adminEmail.textContent =
-                "Not logged in";
+            adminEmail.textContent = "Not logged in";
         }
-        if (
-            !window.location.pathname
-                .endsWith("admin-login.html")
-        ) {
-            window.location.replace(
-                "admin-login.html"
-            );
+
+        if (!window.location.pathname.endsWith("admin-login.html")) {
+            window.location.replace("admin-login.html");
         }
+
         return;
     }
-    console.log(
-        "Admin logged in:",
-        user.email
-    );
+
+    console.log("Admin logged in:", user.email);
+
     if (adminEmail) {
-        adminEmail.textContent =
-            user.email || "Admin";
+        adminEmail.textContent = user.email || "Admin";
     }
 });
 
+
+// NORMALIZE STATUS
 function normalizeStatus(status) {
-    if (
-        status === undefined ||
-        status === null ||
-        status === ""
-    ) {
+    if (status === undefined || status === null || status === "") {
         return "pending";
     }
 
-    return String(status)
-        .trim()
-        .toLowerCase();
+    return String(status).trim().toLowerCase();
 }
 
 
-//GET PAYMENT METHOD
+// GET PAYMENT METHOD
 function getPaymentMethod(order) {
-
     if (!order) {
         return "";
-
     }
-
 
     return (
         order.paymentMethod ||
@@ -128,28 +105,22 @@ function getPaymentMethod(order) {
     );
 }
 
-//NORMALIZE PAYMENT METHOD
+
+// NORMALIZE PAYMENT METHOD
 function normalizePaymentMethod(order) {
-    return String(
-        getPaymentMethod(order)
-    )
-        .trim()
-        .toLowerCase();
+    return String(getPaymentMethod(order)).trim().toLowerCase();
 }
 
-//CHECK IF ONLINE PAYMENT
+
+// CHECK IF ONLINE PAYMENT
 function isGcashPayment(order) {
-
     if (!order) {
-
         return false;
-
     }
 
-    const method =
-        normalizePaymentMethod(order);
-    return (
+    const method = normalizePaymentMethod(order);
 
+    return (
         method.includes("gcash") ||
         method.includes("paymongo") ||
         method.includes("online") ||
@@ -159,21 +130,14 @@ function isGcashPayment(order) {
 }
 
 
-//CHECK IF PAYMENT IS CASH
+// CHECK IF PAYMENT IS CASH
 function isCashPayment(order) {
-
-    if (!order) {
+    if (!order || isGcashPayment(order)) {
         return false;
     }
 
-    if (
-        isGcashPayment(order)
-    ) {
-        return false;
-    }
+    const method = normalizePaymentMethod(order);
 
-    const method =
-        normalizePaymentMethod(order);
     if (!method) {
         return false;
     }
@@ -186,11 +150,10 @@ function isCashPayment(order) {
         method === "cash on delivery" ||
         /\bcash\b/.test(method)
     );
-
 }
 
 
-//PROGRAM NAME
+// PROGRAM NAME
 function getProgramName(program) {
     if (
         program === undefined ||
@@ -200,75 +163,52 @@ function getProgramName(program) {
         return "N/A";
     }
 
-    const value =
-        String(program)
-            .trim()
-            .toLowerCase();
+    const value = String(program).trim().toLowerCase();
+
     const programMap = {
-        "bsp":
-            "BSPsych",
-        "bs psych":
-            "BSPsych",
-        "bs psychology":
-            "BSPsych",
-        "bspsych":
-            "BSPsych",
-        "b.s. psychology":
-            "BSPsych",
-        "bachelor of science in psychology":
-            "BSPsych",
+        "bsp": "BSPsych",
+        "bs psych": "BSPsych",
+        "bs psychology": "BSPsych",
+        "bspsych": "BSPsych",
+        "b.s. psychology": "BSPsych",
+        "bachelor of science in psychology": "BSPsych",
 
-        "bsit":
-            "BSIT",
-        "bs it":
-            "BSIT",
-        "b.s. information technology":
-            "BSIT",
-        "bachelor of science in information technology":
-            "BSIT",
+        "bsit": "BSIT",
+        "bs it": "BSIT",
+        "b.s. information technology": "BSIT",
+        "bachelor of science in information technology": "BSIT",
 
-        "bscs":
-            "BSCS",
-        "bs cs":
-            "BSCS",
-        "bs computer science":
-            "BSCS",
+        "bscs": "BSCS",
+        "bs cs": "BSCS",
+        "bs computer science": "BSCS",
 
-        "bsoa":
-            "BSOA",
-        "bs oa":
-            "BSOA",
+        "bsoa": "BSOA",
+        "bs oa": "BSOA",
 
-        "bshm":
-            "BSHM",
-        "bs hm":
-            "BSHM",
+        "bshm": "BSHM",
+        "bs hm": "BSHM",
 
-        "bstm":
-            "BSTM",
-        "bs tm":
-            "BSTM"
-
+        "bstm": "BSTM",
+        "bs tm": "BSTM"
     };
 
-    return (
-        programMap[value] ||
-        String(program).trim()
-    );
+    return programMap[value] || String(program).trim();
 }
 
 
-
+// NORMALIZE PROGRAM FOR STORAGE
 function normalizeProgramForStorage(value) {
     if (!value) {
         return "";
     }
+
     const program = String(value)
         .trim()
         .toUpperCase()
         .replace(/\./g, "")
         .replace(/-/g, " ")
         .replace(/\s+/g, " ");
+
     if (
         program === "IS" ||
         program === "BSIS" ||
@@ -321,9 +261,8 @@ function normalizeProgramForStorage(value) {
 }
 
 
-//GET ORDER PROGRAM
+// GET ORDER PROGRAM
 function getOrderProgram(order) {
-
     return getProgramName(
         order.program ||
         order.programName ||
@@ -335,7 +274,7 @@ function getOrderProgram(order) {
 }
 
 
-//GET STUDENT OR CUSTOMER NAME
+// GET STUDENT OR CUSTOMER NAME
 function getCustomerName(order) {
     return (
         order.studentName ||
@@ -350,11 +289,12 @@ function getCustomerName(order) {
 }
 
 
-//GET ORDER IDENTITIES
+// GET ORDER IDENTIFIERS
 function getOrderIdentifiers(order) {
     if (!order) {
         return [];
     }
+
     return [
         order.id,
         order.orderId,
@@ -373,2309 +313,1125 @@ function getOrderIdentifiers(order) {
         order.checkoutId,
         order.checkoutID
     ]
-
-    .filter(value =>
-        value !== undefined &&
-        value !== null &&
-        String(value).trim() !== ""
-    )
-
-    .map(value =>
-        String(value)
-            .trim()
-            .toLowerCase()
-    );
-
+        .filter(value =>
+            value !== undefined &&
+            value !== null &&
+            String(value).trim() !== ""
+        )
+        .map(value =>
+            String(value).trim().toLowerCase()
+        );
 }
 
 
-// ======================================================
-// GET PAYMENT DOCUMENT IDENTIFIERS
-// ======================================================
-
+// PAYMENT DOCUMENT IDENTIFIERS
 function getPaymentIdentifiers(payment) {
-
     if (!payment) {
-
         return [];
-
     }
-
 
     return [
-
         payment.orderId,
-
         payment.orderID,
-
         payment.order_id,
-
         payment.orderNumber,
-
         payment.orderNo,
-
         payment.reservationId,
-
         payment.reservationID,
-
         payment.reservationNumber,
-
         payment.reservationNo,
-
         payment.transactionOrderId,
-
         payment.checkoutOrderId,
-
         payment.transactionId,
-
         payment.transactionID,
-
         payment.checkoutId,
-
         payment.checkoutID
-
     ]
-
-    .filter(value =>
-        value !== undefined &&
-        value !== null &&
-        String(value).trim() !== ""
-    )
-
-    .map(value =>
-        String(value)
-            .trim()
-            .toLowerCase()
-    );
-
+        .filter(value =>
+            value !== undefined &&
+            value !== null &&
+            String(value).trim() !== ""
+        )
+        .map(value =>
+            String(value).trim().toLowerCase()
+        );
 }
 
 
-// ======================================================
-// CHECK IF REFERENCE IS VALID
-// ======================================================
-
+// CHECK IF THE REFERENCE NUMBER IS VALID
 function isValidReference(value) {
-
-    if (
-        value === undefined ||
-        value === null
-    ) {
-
+    if (value === undefined || value === null) {
         return false;
-
     }
 
-
-    const reference =
-        String(value).trim();
-
+    const reference = String(value).trim();
 
     if (!reference) {
-
         return false;
-
     }
 
-
-    const normalized =
-        reference.toLowerCase();
-
+    const normalized = reference.toLowerCase();
 
     if (
-
         normalized === "n/a" ||
-
         normalized === "na" ||
-
         normalized === "none" ||
-
         normalized === "null" ||
-
         normalized === "undefined" ||
-
         normalized === "no reference number"
-
     ) {
-
         return false;
-
     }
-
 
     return true;
-
 }
 
 
-// ======================================================
-// GET PAYMENT REFERENCE
-// ======================================================
-
+// GET PAYMENT OR GCASH REFERENCE
 function getPaymentReference(payment) {
-
     if (!payment) {
-
         return "";
-
     }
-
 
     const possibleReferences = [
-
         payment.referenceNumber,
-
         payment.referenceNo,
-
         payment.reference,
-
         payment.paymentReference,
-
         payment.paymentReferenceNumber,
-
         payment.paymentRef,
-
         payment.paymentRefNumber,
-
         payment.gcashReference,
-
         payment.gcashReferenceNumber,
-
         payment.gcashRef,
-
         payment.gcashRefNumber,
-
         payment.paymongoReference,
-
         payment.paymongoReferenceNumber,
-
         payment.paymongoRef,
-
         payment.transactionReference,
-
         payment.transactionReferenceNumber,
-
         payment.transactionId,
-
         payment.transactionID,
-
         payment.checkoutReference,
-
         payment.checkoutReferenceNumber,
-
         payment.checkoutId,
-
         payment.checkoutID,
-
         payment.refNumber,
-
         payment.refNo,
-
         payment.externalReference,
-
         payment.externalReferenceNumber
-
     ];
 
-
-    for (
-        const value
-        of possibleReferences
-    ) {
-
-        if (
-            !isValidReference(value)
-        ) {
-
+    for (const value of possibleReferences) {
+        if (!isValidReference(value)) {
             continue;
-
         }
-
 
         return String(value).trim();
-
     }
-
 
     return "";
-
 }
 
 
-// ======================================================
 // GET PAYMENT DOCUMENT METHOD
-// ======================================================
-
 function getPaymentDocumentMethod(payment) {
-
     if (!payment) {
-
         return "";
-
     }
 
-
     return (
-
         payment.paymentMethod ||
-
         payment.paymentMethodName ||
-
         payment.method ||
-
         payment.payment_type ||
-
         payment.paymentType ||
-
         payment.payment ||
-
         payment.payment_method ||
-
         payment.type ||
-
         ""
-
     );
-
 }
 
 
-// ======================================================
 // NORMALIZE PAYMENT DOCUMENT METHOD
-// ======================================================
-
 function normalizePaymentDocumentMethod(payment) {
-
-    return String(
-        getPaymentDocumentMethod(payment)
-    )
+    return String(getPaymentDocumentMethod(payment))
         .trim()
         .toLowerCase();
-
 }
 
 
-// ======================================================
-// CHECK IF PAYMENT DOCUMENT IS ONLINE
-// ======================================================
-
+// CHECK IF DOCUMENT PAYMENT IS ONLINE
 function isOnlinePaymentDocument(payment) {
-
     if (!payment) {
-
         return false;
-
     }
 
-
-    const method =
-        normalizePaymentDocumentMethod(
-            payment
-        );
-
+    const method = normalizePaymentDocumentMethod(payment);
 
     return (
-
         method.includes("gcash") ||
-
         method.includes("paymongo") ||
-
         method.includes("online") ||
-
         method.includes("e-wallet") ||
-
         method.includes("ewallet")
-
     );
-
 }
 
 
-// ======================================================
 // CHECK IF PAYMENT DOCUMENT IS CASH
-// ======================================================
-
 function isCashPaymentDocument(payment) {
-
-    if (!payment) {
-
+    if (!payment || isOnlinePaymentDocument(payment)) {
         return false;
-
     }
 
-
-    if (
-        isOnlinePaymentDocument(payment)
-    ) {
-
-        return false;
-
-    }
-
-
-    const method =
-        normalizePaymentDocumentMethod(
-            payment
-        );
-
+    const method = normalizePaymentDocumentMethod(payment);
 
     if (!method) {
-
         return false;
-
     }
 
-
     return (
-
         method === "cash" ||
-
         method === "cash payment" ||
-
         method === "cashpayment" ||
-
         method === "cod" ||
-
         method === "cash on delivery" ||
-
         /\bcash\b/.test(method)
-
     );
-
 }
 
 
-// ======================================================
 // FIND ORDER FOR PAYMENT
-// ======================================================
-
 function findOrderForPayment(payment) {
-
     if (!payment) {
-
         return null;
-
     }
 
+    const paymentIdentifiers = getPaymentIdentifiers(payment);
 
-    const paymentIdentifiers =
-        getPaymentIdentifiers(payment);
-
-
-    if (
-        paymentIdentifiers.length === 0
-    ) {
-
+    if (paymentIdentifiers.length === 0) {
         return null;
-
     }
-
 
     return (
-
         orders.find(order => {
+            const orderIdentifiers = getOrderIdentifiers(order);
 
-            const orderIdentifiers =
-                getOrderIdentifiers(order);
-
-
-            return orderIdentifiers.some(
-                orderId =>
-                    paymentIdentifiers.includes(
-                        orderId
-                    )
+            return orderIdentifiers.some(orderId =>
+                paymentIdentifiers.includes(orderId)
             );
-
         }) || null
-
     );
-
 }
 
 
-// ======================================================
 // FIND ALL PAYMENTS FOR ORDER
-// ======================================================
-
 function findPaymentsForOrder(order) {
-
     if (!order) {
-
         return [];
-
     }
 
+    const orderIdentifiers = getOrderIdentifiers(order);
 
-    const orderIdentifiers =
-        getOrderIdentifiers(order);
-
-
-    if (
-        orderIdentifiers.length === 0
-    ) {
-
+    if (orderIdentifiers.length === 0) {
         return [];
-
     }
-
 
     return payments.filter(payment => {
+        const paymentIdentifiers = getPaymentIdentifiers(payment);
 
-        const paymentIdentifiers =
-            getPaymentIdentifiers(
-                payment
-            );
-
-
-        if (
-            paymentIdentifiers.length === 0
-        ) {
-
+        if (paymentIdentifiers.length === 0) {
             return false;
-
         }
 
-
-        return paymentIdentifiers.some(
-            paymentId =>
-                orderIdentifiers.includes(
-                    paymentId
-                )
+        return paymentIdentifiers.some(paymentId =>
+            orderIdentifiers.includes(paymentId)
         );
+    });
+}
 
+
+// GET ORDER REFERENCE NUMBER
+function getReferenceNumber(order) {
+    if (!order) {
+        return "N/A";
+    }
+
+    if (isCashPayment(order)) {
+        return "N/A";
+    }
+
+    const directReference = getPaymentReference(order);
+
+    if (directReference) {
+        return directReference;
+    }
+
+    const matchingPayments = findPaymentsForOrder(order);
+
+    const sortedPayments = [...matchingPayments].sort((a, b) => {
+        const dateA = getDateObject(a.createdAt);
+        const dateB = getDateObject(b.createdAt);
+
+        return (
+            (dateB?.getTime() || 0) -
+            (dateA?.getTime() || 0)
+        );
     });
 
-}
-
-
-// ======================================================
-// GET ORDER REFERENCE NUMBER
-// ======================================================
-
-function getReferenceNumber(order) {
-
-    if (!order) {
-
-        return "N/A";
-
-    }
-
-
-    if (
-        isCashPayment(order)
-    ) {
-
-        return "N/A";
-
-    }
-
-
-    const directReference =
-        getPaymentReference(order);
-
-
-    if (
-        directReference
-    ) {
-
-        return directReference;
-
-    }
-
-
-    const matchingPayments =
-        findPaymentsForOrder(order);
-
-
-    const sortedPayments =
-        [...matchingPayments]
-            .sort((a, b) => {
-
-                const dateA =
-                    getDateObject(
-                        a.createdAt
-                    );
-
-                const dateB =
-                    getDateObject(
-                        b.createdAt
-                    );
-
-
-                return (
-
-                    (dateB?.getTime() || 0) -
-
-                    (dateA?.getTime() || 0)
-
-                );
-
-            });
-
-
-    for (
-        const payment
-        of sortedPayments
-    ) {
-
-        if (
-            isCashPaymentDocument(
-                payment
-            )
-        ) {
-
+    for (const payment of sortedPayments) {
+        if (isCashPaymentDocument(payment)) {
             continue;
-
         }
 
+        const reference = getPaymentReference(payment);
 
-        const reference =
-            getPaymentReference(
-                payment
-            );
-
-
-        if (
-            reference
-        ) {
-
+        if (reference) {
             return reference;
-
         }
-
     }
 
-
-    if (
-        isGcashPayment(order)
-    ) {
-
+    if (isGcashPayment(order)) {
         return "No reference number";
-
     }
-
 
     return "N/A";
-
 }
 
 
-// ======================================================
 // GET ORDER TOTAL
-// ======================================================
-
 function getOrderTotal(order) {
-
     const total =
-
         order.amount ??
-
         order.total ??
-
         order.totalAmount ??
-
         order.totalPrice ??
-
         order.grandTotal;
 
-
-    if (
-        total !== undefined &&
-        total !== null
-    ) {
-
+    if (total !== undefined && total !== null) {
         return Number(total) || 0;
-
     }
 
-
-    if (
-        order.price !== undefined &&
-        order.price !== null
-    ) {
-
-        const price =
-            Number(order.price) || 0;
-
-        const quantity =
-            Number(order.quantity) || 1;
-
+    if (order.price !== undefined && order.price !== null) {
+        const price = Number(order.price) || 0;
+        const quantity = Number(order.quantity) || 1;
 
         return price * quantity;
-
     }
 
+    if (Array.isArray(order.items)) {
+        return order.items.reduce((sum, item) => {
+            const price = Number(item.price ?? item.amount ?? 0);
+            const quantity = Number(item.quantity ?? 1);
 
-    if (
-        Array.isArray(order.items)
-    ) {
-
-        return order.items.reduce(
-
-            (sum, item) => {
-
-                const price =
-                    Number(
-                        item.price ??
-                        item.amount ??
-                        0
-                    );
-
-
-                const quantity =
-                    Number(
-                        item.quantity ?? 1
-                    );
-
-
-                return (
-                    sum +
-                    price * quantity
-                );
-
-            },
-
-            0
-
-        );
-
+            return sum + price * quantity;
+        }, 0);
     }
-
 
     return 0;
-
 }
 
 
-// ======================================================
-// FORMAT MONEY
-// ======================================================
-
+// FORMAT MONEY TO PESOS
 function formatMoney(amount) {
-
     return "₱" +
-
-        Number(amount || 0)
-            .toLocaleString(
-                "en-PH",
-                {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                }
-            );
-
+        Number(amount || 0).toLocaleString("en-PH", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
 }
 
 
-// ======================================================
 // FORMAT DATE
-// ======================================================
-
 function formatDate(timestamp) {
-
     if (!timestamp) {
-
         return "N/A";
-
     }
-
 
     let date;
 
-
     try {
-
-        if (
-            timestamp &&
-            typeof timestamp.toDate === "function"
-        ) {
-
-            date =
-                timestamp.toDate();
-
+        if (typeof timestamp.toDate === "function") {
+            date = timestamp.toDate();
+        } else if (timestamp instanceof Date) {
+            date = timestamp;
+        } else if (typeof timestamp === "number") {
+            date = new Date(timestamp);
+        } else if (timestamp.seconds !== undefined) {
+            date = new Date(timestamp.seconds * 1000);
+        } else {
+            date = new Date(timestamp);
         }
-
-        else if (
-            timestamp instanceof Date
-        ) {
-
-            date =
-                timestamp;
-
-        }
-
-        else if (
-            typeof timestamp === "number"
-        ) {
-
-            date =
-                new Date(timestamp);
-
-        }
-
-        else if (
-            timestamp.seconds !== undefined
-        ) {
-
-            date =
-                new Date(
-                    timestamp.seconds * 1000
-                );
-
-        }
-
-        else {
-
-            date =
-                new Date(timestamp);
-
-        }
-
-    }
-
-    catch (error) {
-
+    } catch (error) {
         return "N/A";
-
     }
 
-
-    if (
-        !date ||
-        isNaN(date.getTime())
-    ) {
-
+    if (!date || isNaN(date.getTime())) {
         return "N/A";
-
     }
 
-
-    return date.toLocaleString(
-        "en-PH",
-        {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-            hour: "numeric",
-            minute: "2-digit"
-        }
-    );
-
+    return date.toLocaleString("en-PH", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit"
+    });
 }
 
 
-// ======================================================
 // GET DATE OBJECT
-// ======================================================
-
 function getDateObject(timestamp) {
-
     if (!timestamp) {
-
         return null;
-
     }
 
-
     try {
-
-        if (
-            timestamp &&
-            typeof timestamp.toDate === "function"
-        ) {
-
+        if (typeof timestamp.toDate === "function") {
             return timestamp.toDate();
-
         }
 
-
-        if (
-            timestamp instanceof Date
-        ) {
-
+        if (timestamp instanceof Date) {
             return timestamp;
-
         }
 
-
-        if (
-            timestamp.seconds !== undefined
-        ) {
-
-            return new Date(
-                timestamp.seconds * 1000
-            );
-
+        if (timestamp.seconds !== undefined) {
+            return new Date(timestamp.seconds * 1000);
         }
-
 
         return new Date(timestamp);
-
-    }
-
-    catch (error) {
-
+    } catch (error) {
         return null;
-
     }
-
 }
 
 
-// ======================================================
 // ESCAPE HTML
-// ======================================================
-
 function escapeHTML(value) {
-
-    if (
-        value === null ||
-        value === undefined
-    ) {
-
+    if (value === null || value === undefined) {
         return "";
-
     }
 
-
     return String(value)
-
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
-
 }
 
 
-// ======================================================
 // SET TEXT
-// ======================================================
-
 function setText(id, value) {
-
-    const element =
-        document.getElementById(id);
-
+    const element = document.getElementById(id);
 
     if (element) {
-
-        element.textContent =
-            value;
-
+        element.textContent = value;
     }
-
 }
 
 
-// ======================================================
-// CREATE USER NOTIFICATION
-// ======================================================
-
-async function createUserNotification(
-    order,
-    type,
-    message
-) {
-
+// CREATE AND SAVE USER NOTIFICATION
+async function createUserNotification(order, type, message) {
     if (!order.userId) {
-
-        console.warn(
-            "No userId found for notification.",
-            order
-        );
-
+        console.warn("No userId found for notification.", order);
         return;
-
     }
-
 
     try {
+        await addDoc(collection(db, "notifications"), {
+            userId: order.userId,
+            orderId: order.id,
+            type: type,
+            message: message,
+            read: false,
+            notificationRead: false,
+            createdAt: serverTimestamp()
+        });
 
-        await addDoc(
-
-            collection(
-                db,
-                "notifications"
-            ),
-
-            {
-
-                userId:
-                    order.userId,
-
-                orderId:
-                    order.id,
-
-                type:
-                    type,
-
-                message:
-                    message,
-
-                read:
-                    false,
-
-                notificationRead:
-                    false,
-
-                createdAt:
-                    serverTimestamp()
-
-            }
-
-        );
-
-
-        console.log(
-            "Notification created:",
-            type,
-            order.userId
-        );
-
-    }
-
-    catch (error) {
-
-        console.error(
-            "Notification creation error:",
-            error
-        );
-
+        console.log("Notification created:", type, order.userId);
+    } catch (error) {
+        console.error("Notification creation error:", error);
         throw error;
-
     }
-
 }
 
 
 // ======================================================
-// LOAD ORDERS
+// RECEIPT IMAGE FIX
 // ======================================================
 
-function loadOrders() {
-
-    const ordersRef =
-        collection(
-            db,
-            "orders"
-        );
-
-
-    let ordersQuery;
-
-
-    try {
-
-        ordersQuery =
-            query(
-                ordersRef,
-                orderBy(
-                    "createdAt",
-                    "desc"
-                )
-            );
-
+// Return the first usable receipt image from an order or
+// one of the payment documents matched to that order.
+function getReceiptSource(order) {
+    if (!order) {
+        return "";
     }
 
-    catch (error) {
+    const receiptFields = [
+        "receiptImage",
+        "receiptImageUrl",
+        "receiptURL",
+        "receiptUrl",
+        "receipt",
+        "proofOfPayment",
+        "proofOfPaymentUrl",
+        "paymentReceipt",
+        "paymentReceiptUrl",
+        "imageUrl",
+        "imageURL"
+    ];
 
-        ordersQuery =
-            ordersRef;
-
-    }
-
-
-    onSnapshot(
-
-        ordersQuery,
-
-        (snapshot) => {
-
-            orders = [];
-
-
-            snapshot.forEach(
-                (docSnapshot) => {
-
-                    orders.push({
-
-                        id:
-                            docSnapshot.id,
-
-                        ...docSnapshot.data()
-
-                    });
-
-                }
-            );
-
-
-            console.log(
-                "ORDERS LOADED:",
-                orders
-            );
-
-
-            updateDashboard();
-
-            updateOrdersTable();
-
-            updateRecentOrders();
-
-            updatePaymentsTable();
-
-            updateProgramChart();
-
-        },
-
-        (error) => {
-
-            console.error(
-                "Error loading orders:",
-                error
-            );
-
+    function findReceipt(documentData) {
+        if (!documentData) {
+            return "";
         }
 
-    );
+        for (const field of receiptFields) {
+            const value = documentData[field];
 
+            if (typeof value === "string" && value.trim()) {
+                return value.trim();
+            }
+        }
+
+        return "";
+    }
+
+    // First check the order document itself.
+    const orderReceipt = findReceipt(order);
+
+    if (orderReceipt) {
+        return orderReceipt;
+    }
+
+    // Then check matching payment documents.
+    const matchingPayments = findPaymentsForOrder(order);
+
+    const sortedPayments = [...matchingPayments].sort((a, b) => {
+        const dateA = getDateObject(a.createdAt);
+        const dateB = getDateObject(b.createdAt);
+
+        return (
+            (dateB?.getTime() || 0) -
+            (dateA?.getTime() || 0)
+        );
+    });
+
+    for (const payment of sortedPayments) {
+        const paymentReceipt = findReceipt(payment);
+
+        if (paymentReceipt) {
+            return paymentReceipt;
+        }
+    }
+
+    return "";
 }
 
 
-// ======================================================
-// LOAD USERS
-// ======================================================
+// CREATE RECEIPT TABLE CELL
+function createReceiptCell(receiptSource, orderId) {
+    const cell = document.createElement("td");
 
-function loadUsers() {
+    cell.className = "receipt-cell";
 
-    const usersRef =
-        collection(
-            db,
-            "users"
+    if (!receiptSource) {
+        cell.textContent = "No receipt uploaded";
+        cell.style.color = "#888";
+        return cell;
+    }
+
+    const image = document.createElement("img");
+
+    image.src = receiptSource;
+    image.alt = `Payment receipt for order ${orderId}`;
+    image.loading = "lazy";
+
+    image.style.width = "80px";
+    image.style.height = "100px";
+    image.style.objectFit = "contain";
+    image.style.border = "1px solid #ddd";
+    image.style.borderRadius = "6px";
+    image.style.backgroundColor = "#fff";
+    image.style.cursor = "pointer";
+
+    image.title = "Click to view receipt";
+
+    image.addEventListener("click", () => {
+        const receiptWindow = window.open("", "_blank");
+
+        if (!receiptWindow) {
+            alert("Please allow pop-ups to view the receipt.");
+            return;
+        }
+
+        receiptWindow.document.title = `Receipt - Order ${orderId}`;
+
+        const style = receiptWindow.document.createElement("style");
+        style.textContent = `
+            body {
+                margin: 0;
+                padding: 20px;
+                min-height: 100vh;
+                box-sizing: border-box;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                background: #f4f4f4;
+            }
+
+            img {
+                max-width: 100%;
+                max-height: 95vh;
+                height: auto;
+                object-fit: contain;
+                background: white;
+            }
+        `;
+
+        receiptWindow.document.head.appendChild(style);
+
+        const fullImage = receiptWindow.document.createElement("img");
+        fullImage.src = receiptSource;
+        fullImage.alt = `Payment receipt for order ${orderId}`;
+
+        receiptWindow.document.body.appendChild(fullImage);
+    });
+
+    image.onerror = () => {
+        cell.textContent = "Unable to load receipt";
+        cell.style.color = "#b00020";
+
+        console.error(
+            "Receipt image failed to load for order:",
+            orderId
         );
+    };
 
+    cell.appendChild(image);
+
+    return cell;
+}
+
+
+// LOAD ORDERS
+function loadOrders() {
+    const ordersRef = collection(db, "orders");
+
+    const ordersQuery = query(
+        ordersRef,
+        orderBy("createdAt", "desc")
+    );
 
     onSnapshot(
-
-        usersRef,
-
+        ordersQuery,
         (snapshot) => {
+            orders = [];
 
+            snapshot.forEach((docSnapshot) => {
+                orders.push({
+                    id: docSnapshot.id,
+                    ...docSnapshot.data()
+                });
+            });
+
+            console.log("ORDERS LOADED:", orders);
+
+            updateDashboard();
+            updateOrdersTable();
+            updateRecentOrders();
+            updatePaymentsTable();
+            updateProgramChart();
+        },
+        (error) => {
+            console.error("Error loading orders:", error);
+        }
+    );
+}
+
+
+// LOAD USERS
+function loadUsers() {
+    const usersRef = collection(db, "users");
+
+    onSnapshot(
+        usersRef,
+        (snapshot) => {
             users = [];
 
-
-            snapshot.forEach(
-                (docSnapshot) => {
-
-                    users.push({
-
-                        id:
-                            docSnapshot.id,
-
-                        ...docSnapshot.data()
-
-                    });
-
-                }
-            );
-
+            snapshot.forEach((docSnapshot) => {
+                users.push({
+                    id: docSnapshot.id,
+                    ...docSnapshot.data()
+                });
+            });
 
             updateUsersTable();
 
-
             setText(
                 "totalUsers",
-                String(users.length)
-                    .padStart(2, "0")
+                String(users.length).padStart(2, "0")
             );
-
         },
-
         (error) => {
-
-            console.error(
-                "Error loading users:",
-                error
-            );
-
+            console.error("Error loading users:", error);
         }
-
     );
-
 }
 
 
-// ======================================================
 // LOAD PAYMENTS
-// ======================================================
-
 function loadPayments() {
-
-    const paymentsRef =
-        collection(
-            db,
-            "payments"
-        );
-
+    const paymentsRef = collection(db, "payments");
 
     onSnapshot(
-
         paymentsRef,
-
         (snapshot) => {
-
             payments = [];
 
-
-            snapshot.forEach(
-                (docSnapshot) => {
-
-                    payments.push({
-
-                        id:
-                            docSnapshot.id,
-
-                        ...docSnapshot.data()
-
-                    });
-
-                }
-            );
-
-
-            console.log(
-                "PAYMENTS LOADED:",
-                payments
-            );
-
-
-            payments.forEach(payment => {
-
-                console.log(
-                    "PAYMENT DEBUG:",
-                    {
-                        id:
-                            payment.id,
-
-                        orderId:
-                            payment.orderId,
-
-                        orderNumber:
-                            payment.orderNumber,
-
-                        paymentMethod:
-                            payment.paymentMethod,
-
-                        referenceNumber:
-                            payment.referenceNumber,
-
-                        paymentReference:
-                            payment.paymentReference,
-
-                        referenceNo:
-                            payment.referenceNo
-                    }
-                );
-
+            snapshot.forEach((docSnapshot) => {
+                payments.push({
+                    id: docSnapshot.id,
+                    ...docSnapshot.data()
+                });
             });
 
+            console.log("PAYMENTS LOADED:", payments);
 
+            payments.forEach(payment => {
+                console.log("PAYMENT DEBUG:", {
+                    id: payment.id,
+                    orderId: payment.orderId,
+                    orderNumber: payment.orderNumber,
+                    paymentMethod: payment.paymentMethod,
+                    referenceNumber: payment.referenceNumber,
+                    paymentReference: payment.paymentReference,
+                    referenceNo: payment.referenceNo,
+                    hasReceiptImage: Boolean(
+                        payment.receiptImage ||
+                        payment.receiptImageUrl ||
+                        payment.receiptURL ||
+                        payment.receiptUrl
+                    )
+                });
+            });
+
+            // Re-render both tables after payment data arrives.
             updateOrdersTable();
-
             updateRecentOrders();
-
             updatePaymentsTable();
-
         },
-
         (error) => {
-
-            console.error(
-                "Error loading payments:",
-                error
-            );
-
+            console.error("Error loading payments:", error);
         }
-
     );
-
 }
 
 
-// ======================================================
 // LOAD PRODUCTS
-// ======================================================
-
 function loadProducts() {
-
-    const productsRef =
-        collection(
-            db,
-            "products"
-        );
-
+    const productsRef = collection(db, "products");
 
     onSnapshot(
-
         productsRef,
-
         (snapshot) => {
-
             products = [];
 
+            snapshot.forEach((docSnapshot) => {
+                products.push({
+                    id: docSnapshot.id,
+                    ...docSnapshot.data()
+                });
+            });
 
-            snapshot.forEach(
-                (docSnapshot) => {
-
-                    products.push({
-
-                        id:
-                            docSnapshot.id,
-
-                        ...docSnapshot.data()
-
-                    });
-
-                }
-            );
-
-
-            console.log(
-                "PRODUCTS LOADED:",
-                products
-            );
-
+            console.log("PRODUCTS LOADED:", products);
 
             updateProducts();
-
         },
-
         (error) => {
-
-            console.error(
-                "Error loading products:",
-                error
-            );
-
+            console.error("Error loading products:", error);
         }
-
     );
-
 }
 
 
-// ======================================================
 // DASHBOARD
-// ======================================================
-
 function updateDashboard() {
+    const total = orders.length;
 
-    const total =
-        orders.length;
+    const pending = orders.filter(
+        order => normalizeStatus(order.status) === "pending"
+    ).length;
 
+    const confirmed = orders.filter(
+        order => normalizeStatus(order.status) === "confirmed"
+    ).length;
 
-    const pending =
-        orders.filter(
-            order =>
-                normalizeStatus(
-                    order.status
-                ) === "pending"
-        ).length;
+    const completed = orders.filter(
+        order => normalizeStatus(order.status) === "completed"
+    ).length;
 
+    const cancelled = orders.filter(order => {
+        const status = normalizeStatus(order.status);
 
-    const confirmed =
-        orders.filter(
-            order =>
-                normalizeStatus(
-                    order.status
-                ) === "confirmed"
-        ).length;
+        return status === "cancelled" || status === "canceled";
+    }).length;
 
+    setText("totalOrders", String(total).padStart(2, "0"));
+    setText("confirmedOrders", String(confirmed).padStart(2, "0"));
+    setText("cancelledOrders", String(cancelled).padStart(2, "0"));
+    setText("pendingOrders", pending);
+    setText("completedOrders", completed);
 
-    const completed =
-        orders.filter(
-            order =>
-                normalizeStatus(
-                    order.status
-                ) === "completed"
-        ).length;
+    setText("chartTotalOrders", total);
+    setText("chartPendingOrders", pending);
+    setText("chartConfirmedOrders", confirmed);
+    setText("chartCancelledOrders", cancelled);
+    setText("chartCompletedOrders", completed);
 
-
-    const cancelled =
-        orders.filter(
-            order => {
-
-                const status =
-                    normalizeStatus(
-                        order.status
-                    );
-
-
-                return (
-
-                    status === "cancelled" ||
-
-                    status === "canceled"
-
-                );
-
-            }
-        ).length;
-
-
-    setText(
-        "totalOrders",
-        String(total).padStart(2, "0")
-    );
-
-
-    setText(
-        "confirmedOrders",
-        String(confirmed).padStart(2, "0")
-    );
-
-
-    setText(
-        "cancelledOrders",
-        String(cancelled).padStart(2, "0")
-    );
-
-
-    setText(
-        "pendingOrders",
-        pending
-    );
-
-
-    setText(
-        "completedOrders",
-        completed
-    );
-
-
-    setText(
-        "chartTotalOrders",
-        total
-    );
-
-
-    setText(
-        "chartPendingOrders",
-        pending
-    );
-
-
-    setText(
-        "chartConfirmedOrders",
-        confirmed
-    );
-
-
-    setText(
-        "chartCancelledOrders",
-        cancelled
-    );
-
-
-    setText(
-        "chartCompletedOrders",
-        completed
-    );
-
-
-    setText(
-        "reportOrders",
-        total
-    );
-
-
-    setText(
-        "reportPendingOrders",
-        pending
-    );
-
-
-    setText(
-        "reportConfirmedOrders",
-        confirmed
-    );
-
-
-    setText(
-        "reportCancelledOrders",
-        cancelled
-    );
-
-
-    setText(
-        "reportCompletedOrders",
-        completed
-    );
-
+    setText("reportOrders", total);
+    setText("reportPendingOrders", pending);
+    setText("reportConfirmedOrders", confirmed);
+    setText("reportCancelledOrders", cancelled);
+    setText("reportCompletedOrders", completed);
 
     let profit = 0;
 
-
     orders.forEach(order => {
-
-        if (
-            normalizeStatus(
-                order.status
-            ) === "completed"
-        ) {
-
-            profit +=
-                getOrderTotal(order);
-
+        if (normalizeStatus(order.status) === "completed") {
+            profit += getOrderTotal(order);
         }
-
     });
 
-
-    setText(
-        "totalProfit",
-        formatMoney(profit)
-    );
-
-
-    setText(
-        "reportProfit",
-        formatMoney(profit)
-    );
-
+    setText("totalProfit", formatMoney(profit));
+    setText("reportProfit", formatMoney(profit));
 
     updateMonthlyGraph();
-
     updateProgramChart();
-
 }
 
 
-// ======================================================
-// STATUS TEXT
-// ======================================================
-
+// STATUS OF ORDER TEXT
 function getStatusText(status) {
-
-    if (
-        status === "cancelled" ||
-        status === "canceled"
-    ) {
-
+    if (status === "cancelled" || status === "canceled") {
         return "Cancelled";
-
     }
 
-
-    if (
-        status === "completed"
-    ) {
-
+    if (status === "completed") {
         return "Completed";
-
     }
 
-
-    if (
-        status === "confirmed"
-    ) {
-
+    if (status === "confirmed") {
         return "Confirmed";
-
     }
-
 
     return "Pending";
-
 }
 
 
 // ======================================================
-// ORDERS TABLE
+// ORDERS TABLE — RECEIPT COLUMN ADDED
 // ======================================================
-
 function updateOrdersTable() {
-
-    const table =
-        document.getElementById(
-            "ordersTable"
-        );
-
+    const table = document.getElementById("ordersTable");
 
     if (!table) {
-
         return;
-
     }
-
 
     table.innerHTML = "";
 
+    let filteredOrders = [...orders];
 
-    let filteredOrders =
-        [...orders];
+    if (currentOrderFilter !== "all") {
+        filteredOrders = filteredOrders.filter(order => {
+            const status = normalizeStatus(order.status);
 
+            if (currentOrderFilter === "cancelled") {
+                return status === "cancelled" || status === "canceled";
+            }
 
-    if (
-        currentOrderFilter !== "all"
-    ) {
-
-        filteredOrders =
-            filteredOrders.filter(
-                order => {
-
-                    const status =
-                        normalizeStatus(
-                            order.status
-                        );
-
-
-                    if (
-                        currentOrderFilter ===
-                        "cancelled"
-                    ) {
-
-                        return (
-
-                            status === "cancelled" ||
-
-                            status === "canceled"
-
-                        );
-
-                    }
-
-
-                    return (
-                        status ===
-                        currentOrderFilter
-                    );
-
-                }
-            );
-
+            return status === currentOrderFilter;
+        });
     }
-
 
     if (currentSearch) {
+        const search = currentSearch.toLowerCase();
 
-        const search =
-            currentSearch.toLowerCase();
+        filteredOrders = filteredOrders.filter(order => {
+            const customer = getCustomerName(order);
+            const program = getOrderProgram(order);
+            const reference = getReferenceNumber(order);
+            const id = order.id || "";
 
-
-        filteredOrders =
-            filteredOrders.filter(
-                order => {
-
-                    const customer =
-                        getCustomerName(
-                            order
-                        );
-
-
-                    const program =
-                        getOrderProgram(
-                            order
-                        );
-
-
-                    const reference =
-                        getReferenceNumber(
-                            order
-                        );
-
-
-                    const id =
-                        order.id || "";
-
-
-                    return (
-
-                        String(id)
-                            .toLowerCase()
-                            .includes(search) ||
-
-                        String(customer)
-                            .toLowerCase()
-                            .includes(search) ||
-
-                        String(program)
-                            .toLowerCase()
-                            .includes(search) ||
-
-                        String(reference)
-                            .toLowerCase()
-                            .includes(search)
-
-                    );
-
-                }
+            return (
+                String(id).toLowerCase().includes(search) ||
+                String(customer).toLowerCase().includes(search) ||
+                String(program).toLowerCase().includes(search) ||
+                String(reference).toLowerCase().includes(search)
             );
-
+        });
     }
 
-
-    if (
-        filteredOrders.length === 0
-    ) {
-
+    if (filteredOrders.length === 0) {
         table.innerHTML = `
-
             <tr>
-
-                <td
-                    colspan="8"
-                    class="empty">
-
+                <td colspan="9" class="empty">
                     No orders found.
-
                 </td>
-
             </tr>
-
         `;
 
         return;
-
     }
 
+    filteredOrders.forEach(order => {
+        const row = document.createElement("tr");
 
-    filteredOrders.forEach(
-        order => {
+        const total = getOrderTotal(order);
+        const customer = getCustomerName(order);
+        const program = getOrderProgram(order);
+        const reference = getReferenceNumber(order);
+        const quantity = Number(order.quantity) || 1;
+        const status = normalizeStatus(order.status);
+        const statusText = getStatusText(status);
 
-            const row =
-                document.createElement(
-                    "tr"
-                );
+        let actionButtons = `
+            <button
+                type="button"
+                class="view-btn"
+                onclick="viewOrder('${escapeHTML(order.id)}')">
+                <i class="fa-solid fa-eye"></i>
+                View
+            </button>
+        `;
 
-
-            const total =
-                getOrderTotal(
-                    order
-                );
-
-
-            const customer =
-                getCustomerName(
-                    order
-                );
-
-
-            const program =
-                getOrderProgram(
-                    order
-                );
-
-
-            const reference =
-                getReferenceNumber(
-                    order
-                );
-
-
-            const quantity =
-                Number(
-                    order.quantity
-                ) || 1;
-
-
-            const status =
-                normalizeStatus(
-                    order.status
-                );
-
-
-            const statusText =
-                getStatusText(
-                    status
-                );
-
-
-            let actionButtons = `
+        if (status === "pending") {
+            actionButtons += `
+                <button
+                    type="button"
+                    class="confirm-btn"
+                    onclick="confirmOrder('${escapeHTML(order.id)}')">
+                    <i class="fa-solid fa-check"></i>
+                    Confirm
+                </button>
 
                 <button
                     type="button"
-                    class="view-btn"
-                    onclick="viewOrder('${escapeHTML(order.id)}')">
-
-                    <i class="fa-solid fa-eye"></i>
-                    View
-
+                    class="cancel-btn"
+                    onclick="cancelOrder('${escapeHTML(order.id)}')">
+                    <i class="fa-solid fa-xmark"></i>
+                    Cancel
                 </button>
-
             `;
-
-
-            if (
-                status === "pending"
-            ) {
-
-                actionButtons += `
-
-                    <button
-                        type="button"
-                        class="confirm-btn"
-                        onclick="confirmOrder('${escapeHTML(order.id)}')">
-
-                        <i class="fa-solid fa-check"></i>
-                        Confirm
-
-                    </button>
-
-
-                    <button
-                        type="button"
-                        class="cancel-btn"
-                        onclick="cancelOrder('${escapeHTML(order.id)}')">
-
-                        <i class="fa-solid fa-xmark"></i>
-                        Cancel
-
-                    </button>
-
-                `;
-
-            }
-
-
-            else if (
-                status === "confirmed"
-            ) {
-
-                actionButtons += `
-
-                    <button
-                        type="button"
-                        class="complete-btn"
-                        onclick="completeOrder('${escapeHTML(order.id)}')">
-
-                        <i class="fa-solid fa-check-double"></i>
-                        Complete
-
-                    </button>
-
-                `;
-
-            }
-
-
-            else if (
-                status === "completed"
-            ) {
-
-                actionButtons += `
-
-                    <span class="status-completed">
-
-                        <i class="fa-solid fa-circle-check"></i>
-                        Completed
-
-                    </span>
-
-                `;
-
-            }
-
-
-            else if (
-                status === "cancelled" ||
-                status === "canceled"
-            ) {
-
-                actionButtons += `
-
-                    <span class="status-cancelled">
-
-                        <i class="fa-solid fa-circle-xmark"></i>
-                        Cancelled
-
-                    </span>
-
-                `;
-
-            }
-
-
-            row.innerHTML = `
-
-                <td>
-                    ${escapeHTML(order.id)}
-                </td>
-
-                <td>
-                    ${escapeHTML(reference)}
-                </td>
-
-                <td>
-                    ${escapeHTML(customer)}
-                </td>
-
-                <td>
-                    ${escapeHTML(program)}
-                </td>
-
-                <td>
-                    ${quantity}
-                </td>
-
-                <td>
-                    ${formatMoney(total)}
-                </td>
-
-                <td>
-
-                    <span
-                        class="status ${escapeHTML(status)}">
-
-                        ${escapeHTML(statusText)}
-
-                    </span>
-
-                </td>
-
-                <td class="order-actions">
-
-                    ${actionButtons}
-
-                </td>
-
+        } else if (status === "confirmed") {
+            actionButtons += `
+                <button
+                    type="button"
+                    class="complete-btn"
+                    onclick="completeOrder('${escapeHTML(order.id)}')">
+                    <i class="fa-solid fa-check-double"></i>
+                    Complete
+                </button>
             `;
-
-
-            table.appendChild(row);
-
+        } else if (status === "completed") {
+            actionButtons += `
+                <span class="status-completed">
+                    <i class="fa-solid fa-circle-check"></i>
+                    Completed
+                </span>
+            `;
+        } else if (status === "cancelled" || status === "canceled") {
+            actionButtons += `
+                <span class="status-cancelled">
+                    <i class="fa-solid fa-circle-xmark"></i>
+                    Cancelled
+                </span>
+            `;
         }
-    );
 
+        // First six columns.
+        row.innerHTML = `
+            <td>${escapeHTML(order.id)}</td>
+            <td>${escapeHTML(reference)}</td>
+            <td>${escapeHTML(customer)}</td>
+            <td>${escapeHTML(program)}</td>
+            <td>${quantity}</td>
+            <td>${formatMoney(total)}</td>
+        `;
+
+        // Seventh column: receipt image.
+        row.appendChild(
+            createReceiptCell(
+                getReceiptSource(order),
+                order.id
+            )
+        );
+
+        // Eighth column: status.
+        const statusCell = document.createElement("td");
+
+        statusCell.innerHTML = `
+            <span class="status ${escapeHTML(status)}">
+                ${escapeHTML(statusText)}
+            </span>
+        `;
+
+        row.appendChild(statusCell);
+
+        // Ninth column: actions.
+        const actionCell = document.createElement("td");
+
+        actionCell.className = "order-actions";
+        actionCell.innerHTML = actionButtons;
+
+        row.appendChild(actionCell);
+
+        table.appendChild(row);
+    });
 }
 
 
-// ======================================================
 // CONFIRM ORDER
-// ======================================================
+window.confirmOrder = async function(orderId) {
+    const order = orders.find(order => order.id === orderId);
 
-window.confirmOrder =
-    async function(orderId) {
+    if (!order) {
+        alert("Order not found.");
+        return;
+    }
 
-        const order =
-            orders.find(
-                order =>
-                    order.id ===
-                    orderId
-            );
+    if (normalizeStatus(order.status) !== "pending") {
+        alert("Only pending orders can be confirmed.");
+        return;
+    }
 
+    if (!confirm("Are you sure you want to confirm this order?")) {
+        return;
+    }
 
-        if (!order) {
+    try {
+        await updateDoc(doc(db, "orders", orderId), {
+            status: "confirmed",
+            confirmedAt: serverTimestamp()
+        });
 
-            alert(
-                "Order not found."
-            );
+        await createUserNotification(
+            order,
+            "order_confirmed",
+            `Your Order ID ${orderId} has been confirmed by the admin.`
+        );
 
-            return;
-
-        }
-
-
-        if (
-            normalizeStatus(
-                order.status
-            ) !== "pending"
-        ) {
-
-            alert(
-                "Only pending orders can be confirmed."
-            );
-
-            return;
-
-        }
+        alert("Order confirmed successfully!\n\nThe user has been notified.");
+    } catch (error) {
+        console.error("Confirm order error:", error);
+        alert("Failed to confirm order.\n\n" + error.message);
+    }
+};
 
 
-        const answer =
-            confirm(
-                "Are you sure you want to confirm this order?"
-            );
-
-
-        if (!answer) {
-
-            return;
-
-        }
-
-
-        try {
-
-            await updateDoc(
-
-                doc(
-                    db,
-                    "orders",
-                    orderId
-                ),
-
-                {
-
-                    status:
-                        "confirmed",
-
-                    confirmedAt:
-                        serverTimestamp()
-
-                }
-
-            );
-
-
-            await createUserNotification(
-
-                order,
-
-                "order_confirmed",
-
-                `Your Order ID ${orderId} has been confirmed by the admin.`
-
-            );
-
-
-            alert(
-                "Order confirmed successfully!\n\nThe user has been notified."
-            );
-
-        }
-
-        catch (error) {
-
-            console.error(
-                "Confirm order error:",
-                error
-            );
-
-
-            alert(
-                "Failed to confirm order.\n\n" +
-                error.message
-            );
-
-        }
-
-    };
-
-
-// ======================================================
 // CANCEL ORDER
-// ======================================================
+window.cancelOrder = async function(orderId) {
+    const order = orders.find(order => order.id === orderId);
 
-window.cancelOrder =
-    async function(orderId) {
+    if (!order) {
+        alert("Order not found.");
+        return;
+    }
 
-        const order =
-            orders.find(
-                order =>
-                    order.id ===
-                    orderId
-            );
+    if (normalizeStatus(order.status) !== "pending") {
+        alert("Only pending orders can be cancelled.");
+        return;
+    }
 
+    if (!confirm("Are you sure you want to cancel this order?")) {
+        return;
+    }
 
-        if (!order) {
+    try {
+        await updateDoc(doc(db, "orders", orderId), {
+            status: "cancelled",
+            cancelledAt: serverTimestamp(),
+            notification: `Your Order ID ${orderId} has been cancelled by the admin.`,
+            notificationType: "order_cancelled",
+            notificationRead: false,
+            userNotified: true
+        });
 
-            alert(
-                "Order not found."
-            );
+        await createUserNotification(
+            order,
+            "order_cancelled",
+            `Your Order ID ${orderId} has been cancelled by the admin.`
+        );
 
-            return;
-
-        }
-
-
-        if (
-            normalizeStatus(
-                order.status
-            ) !== "pending"
-        ) {
-
-            alert(
-                "Only pending orders can be cancelled."
-            );
-
-            return;
-
-        }
-
-
-        const answer =
-            confirm(
-                "Are you sure you want to cancel this order?"
-            );
+        alert(`Order ${orderId} has been cancelled.\n\nThe user has been notified.`);
+    } catch (error) {
+        console.error("Cancel order error:", error);
+        alert("Failed to cancel order.\n\n" + error.message);
+    }
+};
 
 
-        if (!answer) {
-
-            return;
-
-        }
-
-
-        try {
-
-            await updateDoc(
-
-                doc(
-                    db,
-                    "orders",
-                    orderId
-                ),
-
-                {
-
-                    status:
-                        "cancelled",
-
-                    cancelledAt:
-                        serverTimestamp(),
-
-                    notification:
-                        `Your Order ID ${orderId} has been cancelled by the admin.`,
-
-                    notificationType:
-                        "order_cancelled",
-
-                    notificationRead:
-                        false,
-
-                    userNotified:
-                        true
-
-                }
-
-            );
-
-
-            await createUserNotification(
-
-                order,
-
-                "order_cancelled",
-
-                `Your Order ID ${orderId} has been cancelled by the admin.`
-
-            );
-
-
-            alert(
-                `Order ${orderId} has been cancelled.\n\nThe user has been notified.`
-            );
-
-        }
-
-        catch (error) {
-
-            console.error(
-                "Cancel order error:",
-                error
-            );
-
-
-            alert(
-                "Failed to cancel order.\n\n" +
-                error.message
-            );
-
-        }
-
-    };
-
-
-// ======================================================
 // COMPLETE ORDER
-// ======================================================
+window.completeOrder = async function(orderId) {
+    const order = orders.find(order => order.id === orderId);
 
-window.completeOrder =
-    async function(orderId) {
+    if (!order) {
+        alert("Order not found.");
+        return;
+    }
 
-        const order =
-            orders.find(
-                order =>
-                    order.id ===
-                    orderId
-            );
+    if (normalizeStatus(order.status) !== "confirmed") {
+        alert("Only confirmed orders can be completed.");
+        return;
+    }
 
+    if (!confirm("Are you sure you want to mark this order as completed?")) {
+        return;
+    }
 
-        if (!order) {
+    try {
+        await updateDoc(doc(db, "orders", orderId), {
+            status: "completed",
+            completedAt: serverTimestamp()
+        });
 
-            alert(
-                "Order not found."
-            );
+        await createUserNotification(
+            order,
+            "order_completed",
+            `Your Order ID ${orderId} has been completed. Thank you for ordering from CASWear!`
+        );
 
-            return;
-
-        }
-
-
-        if (
-            normalizeStatus(
-                order.status
-            ) !== "confirmed"
-        ) {
-
-            alert(
-                "Only confirmed orders can be completed."
-            );
-
-            return;
-
-        }
+        alert("Order completed successfully!\n\nThe user has been notified.");
+    } catch (error) {
+        console.error("Complete order error:", error);
+        alert("Failed to complete order.\n\n" + error.message);
+    }
+};
 
 
-        const answer =
-            confirm(
-                "Are you sure you want to mark this order as completed?"
-            );
-
-
-        if (!answer) {
-
-            return;
-
-        }
-
-
-        try {
-
-            await updateDoc(
-
-                doc(
-                    db,
-                    "orders",
-                    orderId
-                ),
-
-                {
-
-                    status:
-                        "completed",
-
-                    completedAt:
-                        serverTimestamp()
-
-                }
-
-            );
-
-
-            await createUserNotification(
-
-                order,
-
-                "order_completed",
-
-                `Your Order ID ${orderId} has been completed. Thank you for ordering from CASWear!`
-
-            );
-
-
-            alert(
-                "Order completed successfully!\n\nThe user has been notified."
-            );
-
-        }
-
-        catch (error) {
-
-            console.error(
-                "Complete order error:",
-                error
-            );
-
-
-            alert(
-                "Failed to complete order.\n\n" +
-                error.message
-            );
-
-        }
-
-    };
-
-
-// ======================================================
 // VIEW ORDER
-// ======================================================
+window.viewOrder = function(orderId) {
+    const order = orders.find(order => order.id === orderId);
 
-window.viewOrder =
-    function(orderId) {
+    if (!order) {
+        alert("Order not found.");
+        return;
+    }
 
-        const order =
-            orders.find(
-                order =>
-                    order.id ===
-                    orderId
-            );
+    const customer = getCustomerName(order);
+    const quantity = Number(order.quantity) || 1;
+    const status = normalizeStatus(order.status);
+    const program = getOrderProgram(order);
+    const reference = getReferenceNumber(order);
+    const paymentMethod = getPaymentMethod(order) || "N/A";
+    const address = order.address || order.deliveryAddress || "N/A";
+    const contact = order.contact || order.phone || order.phoneNumber || "N/A";
 
-
-        if (!order) {
-
-            alert(
-                "Order not found."
-            );
-
-            return;
-
-        }
-
-
-        const customer =
-            getCustomerName(
-                order
-            );
-
-
-        const quantity =
-            Number(
-                order.quantity
-            ) || 1;
-
-
-        const status =
-            normalizeStatus(
-                order.status
-            );
-
-
-        const program =
-            getOrderProgram(
-                order
-            );
-
-
-        const reference =
-            getReferenceNumber(
-                order
-            );
-
-
-        const paymentMethod =
-            getPaymentMethod(order) ||
-            "N/A";
-
-
-        const address =
-            order.address ||
-            order.deliveryAddress ||
-            "N/A";
-
-
-        const contact =
-            order.contact ||
-            order.phone ||
-            order.phoneNumber ||
-            "N/A";
-
-
-        alert(`
-
+    alert(`
 ORDER DETAILS
 ==============================
 
@@ -2695,9 +1451,7 @@ Quantity:
 ${quantity}
 
 Amount:
-${formatMoney(
-    getOrderTotal(order)
-)}
+${formatMoney(getOrderTotal(order))}
 
 Payment Method:
 ${paymentMethod}
@@ -2712,2073 +1466,825 @@ Status:
 ${getStatusText(status)}
 
 Date:
-${formatDate(
-    order.createdAt
-)}
+${formatDate(order.createdAt)}
 
 ==============================
-
 `);
+};
 
-    };
 
-
-// ======================================================
 // ORDER FILTER
-// ======================================================
+window.filterOrders = function(filter, button) {
+    currentOrderFilter = filter;
 
-window.filterOrders =
-    function(
-        filter,
-        button
-    ) {
+    document.querySelectorAll(".order-tab").forEach(tab => {
+        tab.classList.remove("active");
+    });
 
-        currentOrderFilter =
-            filter;
+    if (button) {
+        button.classList.add("active");
+    }
 
-
-        document
-            .querySelectorAll(
-                ".order-tab"
-            )
-            .forEach(
-                tab => {
-
-                    tab.classList.remove(
-                        "active"
-                    );
-
-                }
-            );
+    updateOrdersTable();
+};
 
 
-        if (button) {
-
-            button.classList.add(
-                "active"
-            );
-
-        }
-
-
-        updateOrdersTable();
-
-    };
-
-
-// ======================================================
 // RECENT ORDERS
-// ======================================================
-
 function updateRecentOrders() {
-
-    const table =
-        document.getElementById(
-            "recentOrdersTable"
-        );
-
+    const table = document.getElementById("recentOrdersTable");
 
     if (!table) {
-
         return;
-
     }
-
 
     table.innerHTML = "";
 
+    const recent = [...orders]
+        .sort((a, b) => {
+            const dateA = getDateObject(a.createdAt);
+            const dateB = getDateObject(b.createdAt);
 
-    const recent =
+            return (
+                (dateB?.getTime() || 0) -
+                (dateA?.getTime() || 0)
+            );
+        })
+        .slice(0, 5);
 
-        [...orders]
-
-            .sort(
-                (a, b) => {
-
-                    const dateA =
-                        getDateObject(
-                            a.createdAt
-                        );
-
-                    const dateB =
-                        getDateObject(
-                            b.createdAt
-                        );
-
-
-                    return (
-
-                        (dateB?.getTime() || 0) -
-
-                        (dateA?.getTime() || 0)
-
-                    );
-
-                }
-            )
-
-            .slice(0, 5);
-
-
-    if (
-        recent.length === 0
-    ) {
-
+    if (recent.length === 0) {
         table.innerHTML = `
-
             <tr>
-
-                <td
-                    colspan="6"
-                    class="empty">
-
+                <td colspan="6" class="empty">
                     No orders yet.
-
                 </td>
-
             </tr>
-
         `;
 
         return;
-
     }
 
+    recent.forEach(order => {
+        const row = document.createElement("tr");
 
-    recent.forEach(
-        order => {
+        const customer = getCustomerName(order);
+        const program = getOrderProgram(order);
+        const status = normalizeStatus(order.status);
 
-            const row =
-                document.createElement(
-                    "tr"
-                );
+        row.innerHTML = `
+            <td>${escapeHTML(order.id)}</td>
+            <td>${escapeHTML(customer)}</td>
+            <td>${escapeHTML(program)}</td>
+            <td>${formatMoney(getOrderTotal(order))}</td>
+            <td>
+                <span class="status ${escapeHTML(status)}">
+                    ${escapeHTML(getStatusText(status))}
+                </span>
+            </td>
+            <td>${formatDate(order.createdAt)}</td>
+        `;
 
-
-            const customer =
-                getCustomerName(
-                    order
-                );
-
-
-            const program =
-                getOrderProgram(
-                    order
-                );
-
-
-            const status =
-                normalizeStatus(
-                    order.status
-                );
-
-
-            row.innerHTML = `
-
-                <td>
-                    ${escapeHTML(
-                        order.id
-                    )}
-                </td>
-
-                <td>
-                    ${escapeHTML(
-                        customer
-                    )}
-                </td>
-
-                <td>
-                    ${escapeHTML(
-                        program
-                    )}
-                </td>
-
-                <td>
-                    ${formatMoney(
-                        getOrderTotal(
-                            order
-                        )
-                    )}
-                </td>
-
-                <td>
-
-                    <span
-                        class="status ${escapeHTML(status)}">
-
-                        ${escapeHTML(
-                            getStatusText(
-                                status
-                            )
-                        )}
-
-                    </span>
-
-                </td>
-
-                <td>
-                    ${formatDate(
-                        order.createdAt
-                    )}
-                </td>
-
-            `;
-
-
-            table.appendChild(
-                row
-            );
-
-        }
-    );
-
+        table.appendChild(row);
+    });
 }
 
 
-// ======================================================
 // USERS TABLE
-// ======================================================
-
 function updateUsersTable() {
-
-    const table =
-        document.getElementById(
-            "usersTable"
-        );
-
+    const table = document.getElementById("usersTable");
 
     if (!table) {
-
         return;
-
     }
-
 
     table.innerHTML = "";
 
-
-    if (
-        users.length === 0
-    ) {
-
+    if (users.length === 0) {
         table.innerHTML = `
-
             <tr>
-
-                <td
-                    colspan="5"
-                    class="empty">
-
+                <td colspan="5" class="empty">
                     No users yet.
-
                 </td>
-
             </tr>
-
         `;
 
         return;
-
     }
 
+    users.forEach(user => {
+        const row = document.createElement("tr");
 
-    users.forEach(
-        user => {
+        row.innerHTML = `
+            <td>
+                ${escapeHTML(
+                    user.studentName ||
+                    user.fullname ||
+                    user.fullName ||
+                    user.name ||
+                    "N/A"
+                )}
+            </td>
 
-            const row =
-                document.createElement(
-                    "tr"
-                );
+            <td>${escapeHTML(user.email || "N/A")}</td>
 
+            <td>
+                ${escapeHTML(
+                    user.contact ||
+                    user.phone ||
+                    user.phoneNumber ||
+                    "N/A"
+                )}
+            </td>
 
-            row.innerHTML = `
+            <td>${escapeHTML(user.address || "N/A")}</td>
 
-                <td>
+            <td>${escapeHTML(user.role || "User")}</td>
+        `;
 
-                    ${escapeHTML(
-
-                        user.studentName ||
-
-                        user.fullname ||
-
-                        user.fullName ||
-
-                        user.name ||
-
-                        "N/A"
-
-                    )}
-
-                </td>
-
-
-                <td>
-
-                    ${escapeHTML(
-
-                        user.email ||
-
-                        "N/A"
-
-                    )}
-
-                </td>
-
-
-                <td>
-
-                    ${escapeHTML(
-
-                        user.contact ||
-
-                        user.phone ||
-
-                        user.phoneNumber ||
-
-                        "N/A"
-
-                    )}
-
-                </td>
-
-
-                <td>
-
-                    ${escapeHTML(
-
-                        user.address ||
-
-                        "N/A"
-
-                    )}
-
-                </td>
-
-
-                <td>
-
-                    ${escapeHTML(
-
-                        user.role ||
-
-                        "User"
-
-                    )}
-
-                </td>
-
-            `;
-
-
-            table.appendChild(
-                row
-            );
-
-        }
-    );
-
+        table.appendChild(row);
+    });
 }
 
 
-// ======================================================
 // PAYMENTS TABLE
-// ======================================================
-
 function updatePaymentsTable() {
-
-    const table =
-        document.getElementById(
-            "paymentsTable"
-        );
-
+    const table = document.getElementById("paymentsTable");
 
     if (!table) {
-
         return;
-
     }
-
 
     table.innerHTML = "";
 
-
-    if (
-        payments.length === 0
-    ) {
-
+    if (payments.length === 0) {
         table.innerHTML = `
-
             <tr>
-
-                <td
-                    colspan="6"
-                    class="empty">
-
+                <td colspan="6" class="empty">
                     No payments yet.
-
                 </td>
-
             </tr>
-
         `;
 
         return;
-
     }
 
+    payments.forEach(payment => {
+        const row = document.createElement("tr");
 
-    payments.forEach(
-        payment => {
+        const relatedOrder = findOrderForPayment(payment);
 
-            const row =
-                document.createElement(
-                    "tr"
-                );
+        let paymentMethod = getPaymentDocumentMethod(payment);
 
-
-            const relatedOrder =
-                findOrderForPayment(
-                    payment
-                );
-
-
-            let paymentMethod =
-                getPaymentDocumentMethod(
-                    payment
-                );
-
-
-            if (
-                !paymentMethod &&
-                relatedOrder
-            ) {
-
-                paymentMethod =
-                    getPaymentMethod(
-                        relatedOrder
-                    );
-
-            }
-
-
-            paymentMethod =
-                paymentMethod ||
-                "N/A";
-
-
-            let isCash = false;
-
-            let isOnline = false;
-
-
-            if (
-                isOnlinePaymentDocument(
-                    payment
-                )
-            ) {
-
-                isOnline = true;
-
-            }
-
-
-            else if (
-                isCashPaymentDocument(
-                    payment
-                )
-            ) {
-
-                isCash = true;
-
-            }
-
-
-            else if (
-                !getPaymentDocumentMethod(
-                    payment
-                ) &&
-                relatedOrder
-            ) {
-
-                if (
-                    isGcashPayment(
-                        relatedOrder
-                    )
-                ) {
-
-                    isOnline = true;
-
-                }
-
-                else if (
-                    isCashPayment(
-                        relatedOrder
-                    )
-                ) {
-
-                    isCash = true;
-
-                }
-
-            }
-
-
-            let reference =
-                "N/A";
-
-
-            if (isCash) {
-
-                reference =
-                    "N/A";
-
-            }
-
-
-            else if (isOnline) {
-
-                reference =
-                    getPaymentReference(
-                        payment
-                    );
-
-
-                if (
-                    !reference &&
-                    relatedOrder
-                ) {
-
-                    reference =
-                        getPaymentReference(
-                            relatedOrder
-                        );
-
-                }
-
-
-                if (!reference) {
-
-                    reference =
-                        "No reference number";
-
-                }
-
-            }
-
-
-            else {
-
-                const directReference =
-                    getPaymentReference(
-                        payment
-                    );
-
-
-                if (
-                    directReference
-                ) {
-
-                    reference =
-                        directReference;
-
-                }
-
-                else if (
-                    relatedOrder
-                ) {
-
-                    reference =
-                        getReferenceNumber(
-                            relatedOrder
-                        );
-
-                }
-
-                else {
-
-                    reference =
-                        "N/A";
-
-                }
-
-            }
-
-
-            const orderNumber =
-
-                payment.orderNumber ||
-
-                payment.orderNo ||
-
-                payment.orderId ||
-
-                payment.orderID ||
-
-                payment.order_id ||
-
-                payment.reservationNumber ||
-
-                payment.reservationNo ||
-
-                payment.reservationId ||
-
-                payment.reservationID ||
-
-                relatedOrder?.orderNumber ||
-
-                relatedOrder?.orderNo ||
-
-                relatedOrder?.orderId ||
-
-                relatedOrder?.orderID ||
-
-                relatedOrder?.id ||
-
-                "N/A";
-
-
-            const paymentAmount =
-
-                Number(
-
-                    payment.total ??
-
-                    payment.amount ??
-
-                    payment.totalAmount ??
-
-                    payment.amountPaid ??
-
-                    payment.amountDue ??
-
-                    relatedOrder?.total ??
-
-                    relatedOrder?.amount ??
-
-                    relatedOrder?.totalAmount ??
-
-                    0
-
-                ) || 0;
-
-
-            const paymentStatus =
-
-                payment.status ||
-
-                payment.paymentStatus ||
-
-                "Pending";
-
-
-            row.innerHTML = `
-
-                <td>
-
-                    ${escapeHTML(
-                        payment.id
-                    )}
-
-                </td>
-
-
-                <td>
-
-                    ${escapeHTML(
-                        orderNumber
-                    )}
-
-                </td>
-
-
-                <td>
-
-                    ${escapeHTML(
-                        reference
-                    )}
-
-                </td>
-
-
-                <td>
-
-                    ${formatMoney(
-                        paymentAmount
-                    )}
-
-                </td>
-
-
-                <td>
-
-                    ${escapeHTML(
-                        paymentMethod
-                    )}
-
-                </td>
-
-
-                <td>
-
-                    ${escapeHTML(
-                        paymentStatus
-                    )}
-
-                </td>
-
-            `;
-
-
-            table.appendChild(
-                row
-            );
-
+        if (!paymentMethod && relatedOrder) {
+            paymentMethod = getPaymentMethod(relatedOrder);
         }
-    );
 
+        paymentMethod = paymentMethod || "N/A";
+
+        let isCash = false;
+        let isOnline = false;
+
+        if (isOnlinePaymentDocument(payment)) {
+            isOnline = true;
+        } else if (isCashPaymentDocument(payment)) {
+            isCash = true;
+        } else if (!getPaymentDocumentMethod(payment) && relatedOrder) {
+            if (isGcashPayment(relatedOrder)) {
+                isOnline = true;
+            } else if (isCashPayment(relatedOrder)) {
+                isCash = true;
+            }
+        }
+
+        let reference = "N/A";
+
+        if (isCash) {
+            reference = "N/A";
+        } else if (isOnline) {
+            reference = getPaymentReference(payment);
+
+            if (!reference && relatedOrder) {
+                reference = getPaymentReference(relatedOrder);
+            }
+
+            if (!reference) {
+                reference = "No reference number";
+            }
+        } else {
+            const directReference = getPaymentReference(payment);
+
+            if (directReference) {
+                reference = directReference;
+            } else if (relatedOrder) {
+                reference = getReferenceNumber(relatedOrder);
+            }
+        }
+
+        const orderNumber =
+            payment.orderNumber ||
+            payment.orderNo ||
+            payment.orderId ||
+            payment.orderID ||
+            payment.order_id ||
+            payment.reservationNumber ||
+            payment.reservationNo ||
+            payment.reservationId ||
+            payment.reservationID ||
+            relatedOrder?.orderNumber ||
+            relatedOrder?.orderNo ||
+            relatedOrder?.orderId ||
+            relatedOrder?.orderID ||
+            relatedOrder?.id ||
+            "N/A";
+
+        const paymentAmount = Number(
+            payment.total ??
+            payment.amount ??
+            payment.totalAmount ??
+            payment.amountPaid ??
+            payment.amountDue ??
+            relatedOrder?.total ??
+            relatedOrder?.amount ??
+            relatedOrder?.totalAmount ??
+            0
+        ) || 0;
+
+        const paymentStatus =
+            payment.status ||
+            payment.paymentStatus ||
+            "Pending";
+
+        row.innerHTML = `
+            <td>${escapeHTML(payment.id)}</td>
+            <td>${escapeHTML(orderNumber)}</td>
+            <td>${escapeHTML(reference)}</td>
+            <td>${formatMoney(paymentAmount)}</td>
+            <td>${escapeHTML(paymentMethod)}</td>
+            <td>${escapeHTML(paymentStatus)}</td>
+        `;
+
+        table.appendChild(row);
+    });
 }
 
 
-// ======================================================
-// MONTHLY ORDERS GRAPH
-// ======================================================
-
+// MONTHLY ORDER GRAPH
 function updateMonthlyGraph() {
-
-    const groups =
-        document.querySelectorAll(
-            ".bar-group"
-        );
-
+    const groups = document.querySelectorAll(".bar-group");
 
     if (!groups.length) {
-
         return;
-
     }
 
+    const monthlyOrders = new Array(12).fill(0);
 
-    const monthlyOrders =
-        new Array(12).fill(0);
+    orders.forEach(order => {
+        const date = getDateObject(order.createdAt);
 
-
-    orders.forEach(
-        order => {
-
-            const date =
-                getDateObject(
-                    order.createdAt
-                );
-
-
-            if (!date) {
-
-                return;
-
-            }
-
-
-            const month =
-                date.getMonth();
-
-
-            if (
-                month >= 0 &&
-                month <= 11
-            ) {
-
-                monthlyOrders[
-                    month
-                ]++;
-
-            }
-
+        if (!date) {
+            return;
         }
-    );
 
+        const month = date.getMonth();
 
-    const max =
-        Math.max(
-            ...monthlyOrders,
-            1
-        );
-
-
-    groups.forEach(
-        (group, index) => {
-
-            const bar =
-                group.querySelector(
-                    ".order-bar"
-                );
-
-
-            if (!bar) {
-
-                return;
-
-            }
-
-
-            const height =
-
-                (
-                    monthlyOrders[index] /
-                    max
-                ) * 100;
-
-
-            bar.style.height =
-                `${height}%`;
-
+        if (month >= 0 && month <= 11) {
+            monthlyOrders[month]++;
         }
-    );
+    });
 
+    const max = Math.max(...monthlyOrders, 1);
+
+    groups.forEach((group, index) => {
+        const bar = group.querySelector(".order-bar");
+
+        if (!bar) {
+            return;
+        }
+
+        const height = (monthlyOrders[index] / max) * 100;
+
+        bar.style.height = `${height}%`;
+    });
 }
 
 
-// ======================================================
 // ORDERS BY PROGRAM
-// ======================================================
-
 function updateProgramChart() {
-
-    const container =
-        document.getElementById(
-            "programChart"
-        );
-
-
+    const container = document.getElementById("programChart");
     const programCounts = {};
 
+    orders.forEach(order => {
+        const program = getOrderProgram(order);
 
-    orders.forEach(
-        order => {
-
-            const program =
-                getOrderProgram(
-                    order
-                );
-
-
-            if (
-                !program ||
-                program === "N/A"
-            ) {
-
-                return;
-
-            }
-
-
-            if (
-                !programCounts[program]
-            ) {
-
-                programCounts[program] =
-                    0;
-
-            }
-
-
-            programCounts[program]++;
-
+        if (!program || program === "N/A") {
+            return;
         }
-    );
 
+        if (!programCounts[program]) {
+            programCounts[program] = 0;
+        }
 
-    const entries =
+        programCounts[program]++;
+    });
 
-        Object.entries(
-            programCounts
-        )
+    const entries = Object.entries(programCounts)
+        .sort((a, b) => b[1] - a[1]);
 
-        .sort(
-            (a, b) =>
-                b[1] - a[1]
-        );
-
-
-    renderProgramChartGraph(
-        entries
-    );
-
+    renderProgramChartGraph(entries);
 
     if (!container) {
-
         return;
-
     }
 
-
-    if (
-        entries.length === 0
-    ) {
-
+    if (entries.length === 0) {
         container.innerHTML = `
-
             <div class="empty">
-
                 No program orders yet.
-
             </div>
-
         `;
 
         return;
-
     }
 
-
-    const max =
-
-        Math.max(
-            ...entries.map(
-                item => item[1]
-            ),
-            1
-        );
-
+    const max = Math.max(...entries.map(item => item[1]), 1);
 
     container.innerHTML = "";
 
+    entries.forEach(([program, count]) => {
+        const percentage = (count / max) * 100;
+        const row = document.createElement("div");
 
-    entries.forEach(
-        ([program, count]) => {
+        row.className = "program-chart-row";
 
-            const percentage =
+        row.innerHTML = `
+            <div class="chart-row-top">
+                <span class="chart-label">
+                    ${escapeHTML(program)}
+                </span>
 
-                (
-                    count /
-                    max
-                ) * 100;
+                <strong>${count}</strong>
+            </div>
 
-
-            const row =
-                document.createElement(
-                    "div"
-                );
-
-
-            row.className =
-                "program-chart-row";
-
-
-            row.innerHTML = `
-
+            <div class="chart-track">
                 <div
-                    class="chart-row-top">
-
-                    <span
-                        class="chart-label">
-
-                        ${escapeHTML(
-                            program
-                        )}
-
-                    </span>
-
-
-                    <strong>
-
-                        ${count}
-
-                    </strong>
-
+                    class="chart-fill program-fill"
+                    style="width:${percentage}%">
                 </div>
+            </div>
+        `;
 
-
-                <div
-                    class="chart-track">
-
-                    <div
-                        class="chart-fill program-fill"
-                        style="width:${percentage}%">
-
-                    </div>
-
-                </div>
-
-            `;
-
-
-            container.appendChild(
-                row
-            );
-
-        }
-    );
-
+        container.appendChild(row);
+    });
 }
 
 
-// ======================================================
-// ORDERS BY PROGRAM — CHART.JS
-// ======================================================
-
+// ORDERS BY PROGRAM CHART
 function renderProgramChartGraph(entries) {
+    const canvas = document.getElementById("programChartGraph");
 
-    const canvas =
-        document.getElementById(
-            "programChartGraph"
-        );
-
-
-    if (!canvas) {
-
+    if (!canvas || typeof Chart === "undefined") {
         return;
-
     }
 
-
-    if (
-        typeof Chart === "undefined"
-    ) {
-
-        return;
-
-    }
-
-
-    const labels =
-        entries.map(
-            ([program]) => program
-        );
-
-
-    const counts =
-        entries.map(
-            ([, count]) => count
-        );
-
+    const labels = entries.map(([program]) => program);
+    const counts = entries.map(([, count]) => count);
 
     if (programChartInstance) {
-
-        programChartInstance.data.labels =
-            labels;
-
-
-        programChartInstance.data.datasets[0].data =
-            counts;
-
-
+        programChartInstance.data.labels = labels;
+        programChartInstance.data.datasets[0].data = counts;
         programChartInstance.update();
 
         return;
-
     }
 
+    programChartInstance = new Chart(canvas, {
+        type: "bar",
 
-    programChartInstance =
-        new Chart(
+        data: {
+            labels: labels,
 
-            canvas,
+            datasets: [{
+                label: "Orders",
+                data: counts,
+                backgroundColor: "#c9a227",
+                borderRadius: 6
+            }]
+        },
 
-            {
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
 
-                type:
-                    "bar",
-
-                data: {
-
-                    labels:
-                        labels,
-
-                    datasets: [
-
-                        {
-
-                            label:
-                                "Orders",
-
-                            data:
-                                counts,
-
-                            backgroundColor:
-                                "#c9a227",
-
-                            borderRadius:
-                                6
-
-                        }
-
-                    ]
-
-                },
-
-                options: {
-
-                    responsive:
-                        true,
-
-                    maintainAspectRatio:
-                        false,
-
-                    plugins: {
-
-                        legend: {
-
-                            display:
-                                false
-
-                        }
-
-                    },
-
-                    scales: {
-
-                        y: {
-
-                            beginAtZero:
-                                true,
-
-                            ticks: {
-
-                                precision:
-                                    0
-
-                            }
-
-                        }
-
-                    }
-
+            plugins: {
+                legend: {
+                    display: false
                 }
+            },
 
+            scales: {
+                y: {
+                    beginAtZero: true,
+
+                    ticks: {
+                        precision: 0
+                    }
+                }
             }
-
-        );
-
+        }
+    });
 }
 
 
-// ======================================================
 // PRODUCTS
-// ======================================================
-
 function updateProducts() {
-
-    const container =
-        document.getElementById(
-            "productsContainer"
-        );
-
+    const container = document.getElementById("productsContainer");
 
     if (!container) {
-
         return;
-
     }
-
 
     container.innerHTML = "";
 
-
-    if (
-        products.length === 0
-    ) {
-
+    if (products.length === 0) {
         container.innerHTML = `
-
             <div class="full-card">
-
                 <div class="empty">
-
                     No products yet.
-
                 </div>
-
             </div>
-
         `;
 
         return;
-
     }
 
+    products.forEach(product => {
+        const card = document.createElement("div");
 
-    products.forEach(
-        product => {
+        card.className = "product-card";
 
-            const card =
-                document.createElement(
-                    "div"
-                );
+        const name =
+            product.name ||
+            product.productName ||
+            "Unnamed Product";
 
+        const category = product.category || "Others";
 
-            card.className =
-                "product-card";
+        const program =
+            product.program ||
+            product.programName ||
+            "N/A";
 
+        const price = Number(product.price) || 0;
 
-            const name =
+        const image =
+            product.image ||
+            product.imageUrl ||
+            product.photo ||
+            "";
 
-                product.name ||
-
-                product.productName ||
-
-                "Unnamed Product";
-
-
-            const category =
-
-                product.category ||
-
-                "Others";
-
-
-            // ==================================================
-            // PRODUCT PROGRAM (now always a canonical code:
-            // IS / IT / STAT / PSYCH / PROVINCIAL)
-            // ==================================================
-
-            const program =
-
-                product.program ||
-
-                product.programName ||
-
-                "N/A";
-
-
-            const price =
-
-                Number(
-                    product.price
-                ) || 0;
-
-
-
-            const image =
-
-                product.image ||
-
-                product.imageUrl ||
-
-                product.photo ||
-
-                "";
-
-
-            card.innerHTML = `
-
-                <div
-                    class="product-image">
-
-                    ${
-
-                        image
-
-                        ?
-
+        card.innerHTML = `
+            <div class="product-image">
+                ${
+                    image
+                        ? `
+                            <img
+                                src="${escapeHTML(image)}"
+                                alt="${escapeHTML(name)}">
                         `
-
-                        <img
-                            src="${escapeHTML(image)}"
-                            alt="${escapeHTML(name)}">
-
+                        : `
+                            <i class="fa-solid fa-shirt"></i>
                         `
+                }
+            </div>
 
-                        :
+            <div class="product-info">
+                <h3>${escapeHTML(name)}</h3>
 
-                        `
+                <p>${escapeHTML(category)}</p>
 
-                        <i
-                            class="fa-solid fa-shirt">
-                        </i>
+                <p>
+                    Program:
+                    ${escapeHTML(program)}
+                </p>
 
-                        `
+                <strong>${formatMoney(price)}</strong>
 
-                    }
+                <button
+                    type="button"
+                    class="delete-product-btn"
+                    onclick="deleteProduct('${escapeHTML(product.id)}')">
+                    <i class="fa-solid fa-trash"></i>
+                    Delete
+                </button>
+            </div>
+        `;
 
-                </div>
-
-
-                <div
-                    class="product-info">
-
-                    <h3>
-                        ${escapeHTML(name)}
-                    </h3>
-
-
-                    <p>
-                        ${escapeHTML(category)}
-                    </p>
-
-
-                    <p>
-                        Program:
-                        ${escapeHTML(program)}
-                    </p>
-
-
-                    <strong>
-                        ${formatMoney(price)}
-                    </strong>
-
-
-
-
-                    <button
-                        type="button"
-                        class="delete-product-btn"
-                        onclick="deleteProduct('${escapeHTML(product.id)}')">
-
-                        <i class="fa-solid fa-trash"></i>
-
-                        Delete
-
-                    </button>
-
-                </div>
-
-            `;
-
-
-            container.appendChild(
-                card
-            );
-
-        }
-    );
-
+        container.appendChild(card);
+    });
 }
 
 
-// ======================================================
-// DELETE PRODUCT
-// ======================================================
-
-window.deleteProduct =
-    async function(productId) {
-
-        const product =
-            products.find(
-                product =>
-                    product.id ===
-                    productId
-            );
-
-
-        if (!product) {
-
-            alert(
-                "Product not found."
-            );
-
-            return;
-
-        }
-
-
-        const productName =
-
-            product.name ||
-
-            product.productName ||
-
-            "this product";
-
-
-        const answer =
-            confirm(
-
-                `Are you sure you want to delete "${productName}"?`
-
-            );
-
-
-        if (!answer) {
-
-            return;
-
-        }
-
-
-        try {
-
-            await deleteDoc(
-
-                doc(
-                    db,
-                    "products",
-                    productId
-                )
-
-            );
-
-
-            alert(
-
-                `"${productName}" has been deleted successfully.`
-
-            );
-
-        }
-
-        catch (error) {
-
-            console.error(
-                "Delete product error:",
-                error
-            );
-
-
-            alert(
-
-                "Failed to delete product.\n\n" +
-                error.message
-
-            );
-
-        }
-
-    };
-
-
-// ======================================================
-// PRODUCT MODAL
-// ======================================================
-
-window.openProductModal =
-    function() {
-
-        const modal =
-            document.getElementById(
-                "productModal"
-            );
-
-
-        if (modal) {
-
-            modal.classList.add(
-                "show"
-            );
-
-        }
-
-    };
-
-
-window.closeProductModal =
-    function() {
-
-        const modal =
-            document.getElementById(
-                "productModal"
-            );
-
-
-        if (modal) {
-
-            modal.classList.remove(
-                "show"
-            );
-
-        }
-
-    };
-
-
-// ======================================================
-// SAVE PRODUCT
-// ======================================================
-
-document.addEventListener(
-    "DOMContentLoaded",
-    () => {
-
-        const productForm =
-            document.getElementById(
-                "productForm"
-            );
-
-
-        if (!productForm) {
-
-            return;
-
-        }
-
-
-        productForm.addEventListener(
-            "submit",
-            async (event) => {
-
-                event.preventDefault();
-
-
-                const name =
-                    document.getElementById(
-                        "productName"
-                    )?.value.trim();
-
-
-                const category =
-                    document.getElementById(
-                        "productCategory"
-                    )?.value;
-
-
-                // ==================================================
-                // GET PRODUCT PROGRAM AND NORMALIZE IT FOR STORAGE
-                // This is the fix: whatever the <select> option's
-                // raw value/text is, it gets forced into one of
-                // IS / IT / STAT / PSYCH / PROVINCIAL before being
-                // saved — matching exactly what products.js expects
-                // when it filters products per storefront page.
-                // ==================================================
-
-                const rawProgram =
-                    document.getElementById(
-                        "productProgram"
-                    )?.value;
-
-
-                const program =
-                    normalizeProgramForStorage(
-                        rawProgram
-                    );
-
-                const price =
-                    Number(
-                        document.getElementById(
-                            "productPrice"
-                        )?.value
-                    ) || 0;
-
-
-
-                const image =
-                    document.getElementById(
-                        "productImage"
-                    )?.value.trim();
-
-
-                if (!name) {
-
-                    alert(
-                        "Please enter a product name."
-                    );
-
-                    return;
-
-                }
-
-
-                if (!category) {
-
-                    alert(
-                        "Please select a category."
-                    );
-
-                    return;
-
-                }
-
-
-                if (!rawProgram) {
-
-                    alert(
-                        "Please select a program."
-                    );
-
-                    return;
-
-                }
-
-
-                // ==================================================
-                // WARN IF THE PROGRAM COULDN'T BE NORMALIZED
-                // (shouldn't happen if the <select> options match
-                // one of the canonical values/labels, but this
-                // catches typos or a newly added option that was
-                // never added to normalizeProgramForStorage()).
-                // ==================================================
-
-                const knownPrograms = [
-                    "IS", "IT", "STAT", "PSYCH", "PROVINCIAL"
-                ];
-
-                if (!knownPrograms.includes(program)) {
-
-                    const proceed = confirm(
-
-                        `Warning: the program value "${rawProgram}" ` +
-                        `did not match a known program (IS, IT, STAT, ` +
-                        `PSYCH, PROVINCIAL).\n\nThis product will be ` +
-                        `saved with program = "${program}" and will ` +
-                        `NOT show up on any storefront page until this ` +
-                        `is fixed.\n\nSave anyway?`
-
-                    );
-
-                    if (!proceed) {
-
-                        return;
-
-                    }
-
-                }
-
-
-                if (price < 0) {
-
-                    alert(
-                        "Price cannot be negative."
-                    );
-
-                    return;
-
-                }
-
-                try {
-
-                    const productData = {
-
-                        name:
-                            name,
-
-                        category:
-                            category,
-
-                        program:
-                            program,
-
-                        price:
-                            price,
-
-                        image:
-                            image,
-
-                        createdAt:
-                            serverTimestamp(),
-
-                        updatedAt:
-                            serverTimestamp()
-
-                    };
-
-
-                    const productRef =
-                        await addDoc(
-
-                            collection(
-                                db,
-                                "products"
-                            ),
-
-                            productData
-
-                        );
-
-
-                    console.log(
-                        "PRODUCT ADDED:",
-                        productRef.id
-                    );
-
-
-                    console.log(
-                        "PRODUCT PROGRAM (raw):",
-                        rawProgram,
-                        "-> (normalized):",
-                        program
-                    );
-
-
-                    alert(
-                        "Product added successfully!"
-                    );
-
-
-                    productForm.reset();
-
-
-                    closeProductModal();
-
-                }
-
-                catch (error) {
-
-                    console.error(
-                        "Add product error:",
-                        error
-                    );
-
-
-                    alert(
-
-                        "Failed to add product.\n\n" +
-                        error.message
-
-                    );
-
-                }
-
-            }
-        );
-
+// DELETE PRODUCTS
+window.deleteProduct = async function(productId) {
+    const product = products.find(product => product.id === productId);
+
+    if (!product) {
+        alert("Product not found.");
+        return;
     }
-);
 
+    const productName =
+        product.name ||
+        product.productName ||
+        "this product";
 
-// ======================================================
-// SEARCH
-// ======================================================
-
-document.addEventListener(
-    "DOMContentLoaded",
-    () => {
-
-        const searchInput =
-            document.getElementById(
-                "searchInput"
-            );
-
-
-        if (!searchInput) {
-
-            return;
-
-        }
-
-
-        searchInput.addEventListener(
-            "input",
-            (event) => {
-
-                currentSearch =
-                    event.target.value.trim();
-
-
-                updateOrdersTable();
-
-            }
-        );
-
+    if (!confirm(`Are you sure you want to delete "${productName}"?`)) {
+        return;
     }
-);
-
-
-// ======================================================
-// SHOW SECTION
-// ======================================================
-
-window.showSection =
-    function(
-        sectionId,
-        element
-    ) {
-
-        document
-            .querySelectorAll(
-                ".content-section"
-            )
-            .forEach(
-                section => {
-
-                    section.classList.remove(
-                        "active-section"
-                    );
-
-                }
-            );
-
-
-        const section =
-            document.getElementById(
-                sectionId
-            );
-
-
-        if (section) {
-
-            section.classList.add(
-                "active-section"
-            );
-
-        }
-
-
-        document
-            .querySelectorAll(
-                ".menu-link"
-            )
-            .forEach(
-                link => {
-
-                    link.classList.remove(
-                        "active"
-                    );
-
-                }
-            );
-
-
-        if (element) {
-
-            element.classList.add(
-                "active"
-            );
-
-        }
-
-
-        const title =
-            document.getElementById(
-                "pageHeaderTitle"
-            );
-
-
-        const titles = {
-
-            dashboard:
-                "Dashboard Overview",
-
-            orders:
-                "Orders Management",
-
-            products:
-                "Products Management",
-
-            users:
-                "Users Management",
-
-            reports:
-                "Reports",
-
-            settings:
-                "Settings"
-
-        };
-
-
-        if (title) {
-
-            title.textContent =
-                titles[sectionId] ||
-                "CASWear Admin Dashboard";
-
-        }
-
-
-        if (
-            sectionId ===
-            "dashboard"
-        ) {
-
-            updateDashboard();
-
-        }
-
-    };
-
-
-// ======================================================
-// SHOW SECTION BY NAME
-// ======================================================
-
-window.showSectionByName =
-    function(sectionId) {
-
-        const links =
-            document.querySelectorAll(
-                ".menu-link"
-            );
-
-
-        let selectedLink =
-            null;
-
-
-        links.forEach(
-            link => {
-
-                const onclick =
-                    link.getAttribute(
-                        "onclick"
-                    ) || "";
-
-
-                if (
-                    onclick.includes(
-                        `'${sectionId}'`
-                    )
-                ) {
-
-                    selectedLink =
-                        link;
-
-                }
-
-            }
-        );
-
-
-        showSection(
-            sectionId,
-            selectedLink
-        );
-
-    };
-
-
-// ======================================================
-// LOGOUT
-// ======================================================
-
-async function logoutAdmin() {
 
     try {
+        await deleteDoc(doc(db, "products", productId));
 
-        console.log(
-            "Logging out admin..."
-        );
+        alert(`"${productName}" has been deleted successfully.`);
+    } catch (error) {
+        console.error("Delete product error:", error);
+        alert("Failed to delete product.\n\n" + error.message);
+    }
+};
 
+
+// PRODUCT MODAL
+window.openProductModal = function() {
+    const modal = document.getElementById("productModal");
+
+    if (modal) {
+        modal.classList.add("show");
+    }
+};
+
+
+window.closeProductModal = function() {
+    const modal = document.getElementById("productModal");
+
+    if (modal) {
+        modal.classList.remove("show");
+    }
+};
+
+
+// SAVE PRODUCT
+document.addEventListener("DOMContentLoaded", () => {
+    const productForm = document.getElementById("productForm");
+
+    if (!productForm) {
+        return;
+    }
+
+    productForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const name =
+            document.getElementById("productName")?.value.trim();
+
+        const category =
+            document.getElementById("productCategory")?.value;
+
+        const rawProgram =
+            document.getElementById("productProgram")?.value;
+
+        const program = normalizeProgramForStorage(rawProgram);
+
+        const price = Number(
+            document.getElementById("productPrice")?.value
+        ) || 0;
+
+        const image =
+            document.getElementById("productImage")?.value.trim();
+
+        if (!name) {
+            alert("Please enter a product name.");
+            return;
+        }
+
+        if (!category) {
+            alert("Please select a category.");
+            return;
+        }
+
+        if (!rawProgram) {
+            alert("Please select a program.");
+            return;
+        }
+
+        const knownPrograms = [
+            "IS",
+            "IT",
+            "STAT",
+            "PSYCH",
+            "PROVINCIAL"
+        ];
+
+        if (!knownPrograms.includes(program)) {
+            const proceed = confirm(
+                `Warning: the program value "${rawProgram}" ` +
+                `did not match a known program (IS, IT, STAT, ` +
+                `PSYCH, PROVINCIAL).\n\nThis product will be ` +
+                `saved with program = "${program}" and will ` +
+                `NOT show up on any storefront page until this ` +
+                `is fixed.\n\nSave anyway?`
+            );
+
+            if (!proceed) {
+                return;
+            }
+        }
+
+        if (price < 0) {
+            alert("Price cannot be negative.");
+            return;
+        }
+
+        try {
+            const productData = {
+                name: name,
+                category: category,
+                program: program,
+                price: price,
+                image: image,
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
+            };
+
+            const productRef = await addDoc(
+                collection(db, "products"),
+                productData
+            );
+
+            console.log("PRODUCT ADDED:", productRef.id);
+
+            console.log(
+                "PRODUCT PROGRAM (raw):",
+                rawProgram,
+                "-> (normalized):",
+                program
+            );
+
+            alert("Product added successfully!");
+
+            productForm.reset();
+
+            closeProductModal();
+        } catch (error) {
+            console.error("Add product error:", error);
+            alert("Failed to add product.\n\n" + error.message);
+        }
+    });
+});
+
+
+// SEARCH
+document.addEventListener("DOMContentLoaded", () => {
+    const searchInput = document.getElementById("searchInput");
+
+    if (!searchInput) {
+        return;
+    }
+
+    searchInput.addEventListener("input", (event) => {
+        currentSearch = event.target.value.trim();
+
+        updateOrdersTable();
+    });
+});
+
+
+// SHOW SECTION
+window.showSection = function(sectionId, element) {
+    document.querySelectorAll(".content-section").forEach(section => {
+        section.classList.remove("active-section");
+    });
+
+    const section = document.getElementById(sectionId);
+
+    if (section) {
+        section.classList.add("active-section");
+    }
+
+    document.querySelectorAll(".menu-link").forEach(link => {
+        link.classList.remove("active");
+    });
+
+    if (element) {
+        element.classList.add("active");
+    }
+
+    const title = document.getElementById("pageHeaderTitle");
+
+    const titles = {
+        dashboard: "Dashboard Overview",
+        orders: "Orders Management",
+        products: "Products Management",
+        users: "Users Management",
+        reports: "Reports",
+        settings: "Settings"
+    };
+
+    if (title) {
+        title.textContent = titles[sectionId] || "CASWear Admin Dashboard";
+    }
+
+    if (sectionId === "dashboard") {
+        updateDashboard();
+    }
+};
+
+
+// SHOW SECTION BY NAME
+window.showSectionByName = function(sectionId) {
+    const links = document.querySelectorAll(".menu-link");
+
+    let selectedLink = null;
+
+    links.forEach(link => {
+        const onclick = link.getAttribute("onclick") || "";
+
+        if (onclick.includes(`'${sectionId}'`)) {
+            selectedLink = link;
+        }
+    });
+
+    showSection(sectionId, selectedLink);
+};
+
+
+// LOGOUT
+async function logoutAdmin() {
+    try {
+        console.log("Logging out admin...");
 
         await signOut(auth);
 
+        console.log("Admin successfully logged out.");
 
-        console.log(
-            "Admin successfully logged out."
-        );
-
-
-        window.location.replace(
-            "admin-login.html"
-        );
-
+        window.location.replace("admin-login.html");
+    } catch (error) {
+        console.error("Logout error:", error);
+        alert("Logout failed.\n\n" + error.message);
     }
-
-    catch (error) {
-
-        console.error(
-            "Logout error:",
-            error
-        );
-
-
-        alert(
-            "Logout failed.\n\n" +
-            error.message
-        );
-
-    }
-
 }
 
 
-// ======================================================
 // LOGOUT BUTTON
-// ======================================================
+document.addEventListener("DOMContentLoaded", () => {
+    const logoutButton = document.getElementById("logoutButton");
 
-document.addEventListener(
-    "DOMContentLoaded",
-    () => {
-
-        const logoutButton =
-            document.getElementById(
-                "logoutButton"
-            );
-
-
-        if (!logoutButton) {
-
-            return;
-
-        }
-
-
-        logoutButton.addEventListener(
-            "click",
-            async (event) => {
-
-                event.preventDefault();
-
-
-                logoutButton.disabled =
-                    true;
-
-
-                logoutButton.innerHTML = `
-
-                    <i class="fa-solid fa-spinner fa-spin"></i>
-
-                    Logging out...
-
-                `;
-
-
-                await logoutAdmin();
-
-            }
-        );
-
+    if (!logoutButton) {
+        return;
     }
-);
+
+    logoutButton.addEventListener("click", async (event) => {
+        event.preventDefault();
+
+        logoutButton.disabled = true;
+
+        logoutButton.innerHTML = `
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            Logging out...
+        `;
+
+        await logoutAdmin();
+    });
+});
 
 
-// ======================================================
-// CURRENT DATE
-// ======================================================
-
+// UPDATE CURRENT DATE
 function updateCurrentDate() {
-
-    const currentDate =
-        document.getElementById(
-            "currentDate"
-        );
-
+    const currentDate = document.getElementById("currentDate");
 
     if (!currentDate) {
-
         return;
-
     }
 
-
-    currentDate.textContent =
-
-        new Date().toLocaleDateString(
-            "en-PH",
-            {
-                month: "long",
-                day: "numeric",
-                year: "numeric"
-            }
-        );
-
+    currentDate.textContent = new Date().toLocaleDateString("en-PH", {
+        month: "long",
+        day: "numeric",
+        year: "numeric"
+    });
 }
 
 
-// ======================================================
-// CLOSE MODAL OUTSIDE
-// ======================================================
+// CLOSE MODAL WHEN CLICKING OUTSIDE
+window.addEventListener("click", (event) => {
+    const modal = document.getElementById("productModal");
 
-window.addEventListener(
-    "click",
-    (event) => {
-
-        const modal =
-            document.getElementById(
-                "productModal"
-            );
-
-
-        if (
-            modal &&
-            event.target === modal
-        ) {
-
-            closeProductModal();
-
-        }
-
+    if (modal && event.target === modal) {
+        closeProductModal();
     }
-);
+});
 
 
+// INITIALIZE DASHBOARD
 updateCurrentDate();
+
 loadOrders();
 loadUsers();
 loadPayments();
